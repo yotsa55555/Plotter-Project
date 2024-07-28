@@ -1,20 +1,30 @@
-{% block title %}
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>ข้อมูล</title>
-    <head>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    </head>
-{% endblock %}
-
-{% block content %}
+    <style>
+        .form-inline .form-group {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
 <div class="container mt-5">
     <h1>Upload CSV and Display Table</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-group">
-            <input type="file" name="csv_file" class="form-control-file">
-        </div>
-        <button type="submit" class="btn btn-primary">Upload</button>
-    </form>
+    <hr>
+    <div class="form-inline">
+        <form method="POST" enctype="multipart/form-data" >
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="file" name="csv_file" class="form-control-file">
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
+            <button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>
+            <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2">Clean Data</button>
+        </form>
+    </div>
 
     {% if page_obj %}
         <h2 class="mt-5">Data from CSV</h2>
@@ -56,4 +66,4 @@
     {% endif %}
 </div>
 </body>
-{% endblock %}
+</html>
