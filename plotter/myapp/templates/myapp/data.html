@@ -2,7 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <title>ข้อมูล</title>
+    <title>Data</title>
     <style>
         .form-inline .form-group {
             margin-right: 10px;
@@ -13,18 +13,28 @@
 <div class="container mt-5">
     <h1>Upload CSV and Display Table</h1>
     <hr>
-    <div class="form-inline">
-        <form method="POST" enctype="multipart/form-data" >
-            {% csrf_token %}
-            <div class="form-group">
-                <input type="file" name="csv_file" class="form-control-file">
-            </div>
-            <br>
-            <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
-            <button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>
-            <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2">Clean Data</button>
-        </form>
-    </div>
+    <form method="POST" enctype="multipart/form-data" class="mb-4">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="file" name="csv_file" class="form-control-file">
+        </div>
+        <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
+        <button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>
+        <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2 mr-2">Clean Data</button>
+    </form>
+    
+    <form method="POST" class="form-inline">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="column" class="mr-2">Column:</label>
+            <input type="text" name="column" id="column" class="form-control mb-2 mr-sm-2" required>
+        </div>
+        <div class="form-group">
+            <label for="to_replace" class="mr-2">Replace:</label>
+            <input type="text" name="to_replace" id="to_replace" class="form-control mb-2 mr-sm-2" required>
+        </div>
+        <button type="submit" name="replace_data" value="true" class="btn btn-warning mb-2">Replace Data</button>
+    </form>
 
     {% if page_obj %}
         <h2 class="mt-5">Data from CSV</h2>

@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.contrib import messages
 import pandas as pd
+import numpy as np
 
 def index(request):
     return render(request, 'myapp/index.html')
@@ -12,6 +13,9 @@ def about(request):
 
 def login(request):
     return render(request, 'myapp/login.html')
+
+def contact(request):
+    return render(request, 'myapp/contact.html')
 
 def data(request):
     data_html = None
@@ -47,6 +51,18 @@ def data(request):
             request.session['data'] = cleaned_data.to_dict()
             request.session['columns'] = list(cleaned_data.columns)
             return redirect('/data')
+    
+    elif request.method == 'POST' and 'replace_data' in request.POST:
+        if 'data' in request.session:
+            column = request.POST.get('column')
+            to_replace = request.POST.get('to_replace')
+            if column and to_replace:
+                data_dict = request.session['data']
+                data = pd.DataFrame.from_dict(data_dict)
+                replaced_data = replace_data(data, column, to_replace)
+                request.session['data'] = replaced_data.to_dict()
+                request.session['columns'] = list(replaced_data.columns)
+            return redirect('/data')
 
     else:
         if 'data' in request.session:
@@ -69,7 +85,23 @@ def check_data(data):
 def clean_data(data):
     try:
         df_cleaned = data.dropna()
-        #df_cleaned = data.fillna(0)
         return df_cleaned
     except Exception as e:
         return data
+    
+def replace_data(data, column, to_replace, replacement=np.nan):
+    try:
+        if to_replace.lower() == 'true' or to_replace.lower() == 'false':
+            to_replace = to_replace.lower() == 'true'
+        else:
+            try:
+                to_replace = int(to_replace)
+            except ValueError:
+                try:
+                    to_replace = float(to_replace)
+                except ValueError:
+                    pass
+        data[column] = data[column].replace(to_replace, replacement)
+    except Exception as e:
+        print(f"Error in replace_data: {e}")
+    return data
