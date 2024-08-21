@@ -22,47 +22,71 @@ def data(request):
     page_obj = None
     columns = None
 
-    if request.method == 'POST' and 'csv_file' in request.FILES:
-        csv_file = request.FILES['csv_file']
-        if not csv_file.name.endswith('.csv'):
-            return HttpResponse("This is not a CSV file")
+    if request.method == 'POST':
 
-        data = pd.read_csv(csv_file)
-        request.session['data'] = data.to_dict()
-        request.session['columns'] = list(data.columns)
+        if 'csv_file' in request.FILES:
+            csv_file = request.FILES['csv_file']
+            if not csv_file.name.endswith('.csv'):
+                return HttpResponse("This is not a CSV file")
 
-        paginator = Paginator(data.values.tolist(), 10)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        columns = data.columns
+            data = pd.read_csv(csv_file)
+            request.session['data'] = data.to_dict()
+            request.session['columns'] = list(data.columns)
 
-        return redirect('/data')
 
-    elif request.method == 'POST' and 'clear_data' in request.POST:
-        request.session.pop('data', None)
-        request.session.pop('columns', None)
-        return redirect('/data')
+            paginator = Paginator(data.values.tolist(), 10)
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            columns = data.columns
 
-    elif request.method == 'POST' and 'clean_data' in request.POST:
-        if 'data' in request.session:
-            data_dict = request.session['data']
-            data = pd.DataFrame.from_dict(data_dict)
-            cleaned_data = check_data(data)
-            request.session['data'] = cleaned_data.to_dict()
-            request.session['columns'] = list(cleaned_data.columns)
             return redirect('/data')
-    
-    elif request.method == 'POST' and 'replace_data' in request.POST:
-        if 'data' in request.session:
-            column = request.POST.get('column')
-            to_replace = request.POST.get('to_replace')
-            if column and to_replace:
+
+
+        elif 'clear_data' in request.POST:
+            request.session.pop('data', None)
+            request.session.pop('columns', None)
+            messages.success(request, "Data has been cleared.")
+            return redirect('/data')
+
+
+        elif 'clean_data' in request.POST:
+            if 'data' in request.session:
                 data_dict = request.session['data']
                 data = pd.DataFrame.from_dict(data_dict)
-                replaced_data = replace_data(data, column, to_replace)
-                request.session['data'] = replaced_data.to_dict()
-                request.session['columns'] = list(replaced_data.columns)
+                cleaned_data = check_data(data)  
+                request.session['data'] = cleaned_data.to_dict()
+                request.session['columns'] = list(cleaned_data.columns)
+                messages.success(request, "Data has been cleaned.")
             return redirect('/data')
+
+
+        elif 'replace_data' in request.POST:
+            if 'data' in request.session:
+                column = request.POST.get('column')
+                to_replace = request.POST.get('to_replace')
+                if column and to_replace:
+                    data_dict = request.session['data']
+                    data = pd.DataFrame.from_dict(data_dict)
+                    replaced_data = replace_data(data, column, to_replace)  
+                    request.session['data'] = replaced_data.to_dict()
+                    request.session['columns'] = list(replaced_data.columns)
+                    messages.success(request, f"Data in column '{column}' has been replaced.")
+            return redirect('/data')
+
+
+        elif 'delete_column' in request.POST:
+            column = request.POST.get('column_id')
+            data_dict = request.session['data']
+            data = pd.DataFrame.from_dict(data_dict)
+            if column in data.columns:
+                data = data.drop(columns=[column])
+                request.session['data'] = data.to_dict()
+                request.session['columns'] = list(data.columns)
+                messages.success(request, f"Column '{column}' has been deleted.")
+            else:
+                messages.error(request, f"Column '{column}' does not exist.")
+            return redirect('/data')
+
 
     else:
         if 'data' in request.session:
@@ -74,6 +98,9 @@ def data(request):
             page_obj = paginator.get_page(page_number)
 
     return render(request, 'myapp/data.html', {'page_obj': page_obj, 'columns': columns})
+
+def describe_data(request):
+    return render(request, 'myapp/describe.html')
 
 def check_data(data):
     if data.isnull().any().any():
@@ -105,3 +132,12 @@ def replace_data(data, column, to_replace, replacement=np.nan):
     except Exception as e:
         print(f"Error in replace_data: {e}")
     return data
+
+#def delete_column(data):
+    #pass
+
+def delete_row(data):
+    pass
+
+def edit_value(data):
+    pass
