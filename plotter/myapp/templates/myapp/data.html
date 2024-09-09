@@ -3,11 +3,20 @@
 
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
     <title>Data</title>
     <style>
         .form-inline .form-group {
             margin-right: 10px;
         }
+        #tableContainer {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            display: none; 
+        }
+    </style>
     </style>
 </head>
 
@@ -16,18 +25,20 @@
         <ul class="navlist">
             <li><a href="/data">Data</a></li>
             <li><a href="/describe">Describe Data</a></li>
+            <li><a href="/plot">Plot Data</a></li>
         </ul>
     </header>
+    {% block content %}
     <div class="container mt-5">
         <h1>Upload CSV and Display Table</h1>
         <hr>
         <form method="POST" enctype="multipart/form-data" class="mb-4">
             {% csrf_token %}
             <div class="form-group">
-                <input type="file" name="csv_file" class="form-control-file">
+                <input type="file" name="csv_file" id="csvFileInput" class="form-control-file">
             </div>
             <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
-            <button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>
+            <!--<button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>-->
             <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2 mr-2">Clean Data</button>
         </form>
 
@@ -35,7 +46,7 @@
             {% csrf_token %}
             <button type="button" id="replace-data-button" class="btn btn-warning mb-2">Replace Data</button>
         </form>
-        
+
         <div id="replace-data-form" style="display: none;">
             <form method="POST" class="form-inline">
                 {% csrf_token %}
@@ -53,10 +64,11 @@
 
         <form method="POST" class="form-inline">
             {% csrf_token %}
-            <button type="button" id="delete-column-button" value="true" class="btn btn-warning mb-2">Delete Column</button>
+            <button type="button" id="delete-column-button" value="true" class="btn btn-warning mb-2">Delete
+                Column</button>
         </form>
 
-        <div id ="delete-column-form" style="display: none;">
+        <div id="delete-column-form" style="display: none;">
             <form method="POST" class="form-inline">
                 {% csrf_token %}
                 <div class="form-group">
@@ -72,7 +84,7 @@
             <button type="button" id="delete-row-button" value="true" class="btn btn-warning mb-2">Delete Row</button>
         </form>
 
-        <div id ="delete-row-form" style="display: none;">
+        <div id="delete-row-form" style="display: none;">
             <form method="POST" class="form-inline">
                 {% csrf_token %}
                 <div class="form-group">
@@ -87,7 +99,7 @@
             {% csrf_token %}
             <button type="button" id="edit-value-button" class="btn btn-warning mb-2">Edit value</button>
         </form>
-        
+
         <div id="edit-form" style="display: none;">
             <form method="POST" class="form-inline">
                 {% csrf_token %}
@@ -106,9 +118,9 @@
                 <button type="submit" name="edit_value" value="true" class="btn btn-warning mb-2">Submit</button>
             </form>
         </div>
-        
+
         <script>
-            document.getElementById('edit-value-button').addEventListener('click', function() {
+            document.getElementById('edit-value-button').addEventListener('click', function () {
                 var editForm = document.getElementById('edit-form');
                 if (editForm.style.display === 'none') {
                     editForm.style.display = 'block';
@@ -117,7 +129,7 @@
                 }
             });
 
-            document.getElementById('delete-row-button').addEventListener('click', function() {
+            document.getElementById('delete-row-button').addEventListener('click', function () {
                 var deleteRowForm = document.getElementById('delete-row-form');
                 if (deleteRowForm.style.display === 'none') {
                     deleteRowForm.style.display = 'block';
@@ -126,7 +138,7 @@
                 }
             });
 
-            document.getElementById('delete-column-button').addEventListener('click', function() {
+            document.getElementById('delete-column-button').addEventListener('click', function () {
                 var deleteColumnForm = document.getElementById('delete-column-form');
                 if (deleteColumnForm.style.display === 'none') {
                     deleteColumnForm.style.display = 'block';
@@ -135,7 +147,7 @@
                 }
             });
 
-            document.getElementById('replace-data-button').addEventListener('click', function() {
+            document.getElementById('replace-data-button').addEventListener('click', function () {
                 var replaceDataForm = document.getElementById('replace-data-form');
                 if (replaceDataForm.style.display === 'none') {
                     replaceDataForm.style.display = 'block';
@@ -151,29 +163,29 @@
             <thead>
                 <tr>
                     {% if columns %}
-                        {% for col in columns %}
-                            <th>{{ col }}</th>
-                        {% endfor %}
+                    {% for col in columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% if page_obj %}
-                    {% for row in page_obj %}
-                        <tr>
-                            {% for cell in row %}
-                                <td>{{ cell }}</td>
-                            {% endfor %}
-                        </tr>
+                {% for row in page_obj %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
                     {% endfor %}
+                </tr>
+                {% endfor %}
                 {% else %}
-                    <tr>
-                        <td colspan="{{ columns|length }}">No data available</td>
-                    </tr>
+                <tr>
+                    <td colspan="{{ columns|length }}">No data available</td>
+                </tr>
                 {% endif %}
             </tbody>
         </table>
-        
+
         <nav>
             <ul class="pagination">
                 {% if page_obj.has_previous %}
@@ -192,7 +204,68 @@
             </ul>
         </nav>
         {% endif %}
-    </div>
+        <!--<form action="{% url 'plot' %}" method="get" >
+        <button type="submit" value="true" class="btn btn-warning mb-2">Plot Data</button>
+    </form>-->
+        <div id="tableContainer"></div>
+        <script src="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.js"></script>
+        <script>
+            document.getElementById('csvFileInput').addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const text = e.target.result;
+                        const data = CSVToArray(text);
+
+                        const container = document.getElementById('tableContainer');
+                        container.style.display = 'block';
+
+                        const hot = new Handsontable(container, {
+                            data: data,
+                            rowHeaders: true,
+                            colHeaders: true,
+                            contextMenu: true,
+                            manualColumnResize: true,
+                            manualRowResize: true,
+                            stretchH: 'all',
+                            height: 500,  //cartoon
+                            licenseKey: 'non-commercial-and-evaluation',
+                            colWidths: [100, 150, 200, 250, 100]
+                        });
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            function CSVToArray(strData, strDelimiter = ",") {
+                const objPattern = new RegExp((
+                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
+                ), "gi");
+
+                const arrData = [[]];
+                let arrMatches = null;
+
+                while (arrMatches = objPattern.exec(strData)) {
+                    const strMatchedDelimiter = arrMatches[1];
+                    if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
+                        arrData.push([]);
+                    }
+
+                    const strMatchedValue = arrMatches[2] ?
+                        arrMatches[2].replace(new RegExp("\"\"", "g"), "\"") :
+                        arrMatches[3];
+
+                    arrData[arrData.length - 1].push(strMatchedValue);
+                }
+
+                return arrData;
+            }
+        </script>
+        {% endblock %}
+
 </body>
 
 </html>
