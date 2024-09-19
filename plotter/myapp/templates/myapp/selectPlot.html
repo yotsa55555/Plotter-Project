@@ -1,0 +1,32 @@
+{% extends "myapp/data.html" %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Data</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    {% block content %}
+    <div class="container">
+
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <button type="button"><a href="/scatter">ScatterPlot</a></button>
+                <button type="button"><a href="/histogram">Histogram</a></button>
+                <button type="button"><a href="/bar">Bar Plot</a></button>
+                <button type="button"><a href="/line">Line Plot</a></button>
+                <button type="button"><a href="/box">Box Plot</a></button>
+                <button type="button"><a href="/pie">Pie Chart</a></button>
+            </div>
+
+    </div>
+    {% endblock %}
+</body>
+
+</html>

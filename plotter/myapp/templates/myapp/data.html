@@ -25,7 +25,7 @@
         <ul class="navlist">
             <li><a href="/data">Data</a></li>
             <li><a href="/describe">Describe Data</a></li>
-            <li><a href="/plot">Plot Data</a></li>
+            <li><a href="/selectPlot">Plot Data</a></li>
         </ul>
     </header>
     {% block content %}
@@ -204,66 +204,6 @@
             </ul>
         </nav>
         {% endif %}
-        <!--<form action="{% url 'plot' %}" method="get" >
-        <button type="submit" value="true" class="btn btn-warning mb-2">Plot Data</button>
-    </form>-->
-        <div id="tableContainer"></div>
-        <script src="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.js"></script>
-        <script>
-            document.getElementById('csvFileInput').addEventListener('change', function (event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const text = e.target.result;
-                        const data = CSVToArray(text);
-
-                        const container = document.getElementById('tableContainer');
-                        container.style.display = 'block';
-
-                        const hot = new Handsontable(container, {
-                            data: data,
-                            rowHeaders: true,
-                            colHeaders: true,
-                            contextMenu: true,
-                            manualColumnResize: true,
-                            manualRowResize: true,
-                            stretchH: 'all',
-                            height: 500,  //cartoon
-                            licenseKey: 'non-commercial-and-evaluation',
-                            colWidths: [100, 150, 200, 250, 100]
-                        });
-                    };
-                    reader.readAsText(file);
-                }
-            });
-
-            function CSVToArray(strData, strDelimiter = ",") {
-                const objPattern = new RegExp((
-                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                ), "gi");
-
-                const arrData = [[]];
-                let arrMatches = null;
-
-                while (arrMatches = objPattern.exec(strData)) {
-                    const strMatchedDelimiter = arrMatches[1];
-                    if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-                        arrData.push([]);
-                    }
-
-                    const strMatchedValue = arrMatches[2] ?
-                        arrMatches[2].replace(new RegExp("\"\"", "g"), "\"") :
-                        arrMatches[3];
-
-                    arrData[arrData.length - 1].push(strMatchedValue);
-                }
-
-                return arrData;
-            }
-        </script>
         {% endblock %}
 
 </body>
