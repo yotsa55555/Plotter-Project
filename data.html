@@ -1,0 +1,295 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            background-color: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding-top: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            color: white;
+        }
+
+        .nav-link:hover {
+            color: #ecf0f1;
+        }
+
+        .main-content {
+            background-color: #ecf0f1;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .tab-content {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            padding: 20px;
+        }
+
+        #tableContainer {
+            width: 100%;
+            height: 400px;
+        }
+
+        .centered-tabs {
+            display: flex;
+            justify-content: center;
+        }
+
+        .centered-tabs .nav-item {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="logo">
+                    <img class="img-fluid" style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo">
+                    <span class="ml-15">Plotter</span>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="uploadDataBtn">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-toggle="collapse" data-target="#cleanDataSubmenu">
+                            Clean Data
+                        </a>
+                        <div class="collapse" id="cleanDataSubmenu">
+                            <ul class="nav flex-column ml-3">
+                                <li class="nav-item"><a class="nav-link" href="#" id="deleteDataBtn">Delete Data</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link" href="#" id="replaceDataBtn">Replace Data</a>
+                                </li>
+                                <li class="nav-item"><a class="nav-link" href="#" id="editValueBtn">Edit Value</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Clear Data</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-9 col-lg-10 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <a href="#" class="btn btn-primary">Export</a>
+                </div>
+                <ul class="nav nav-tabs centered-tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" style="color: #2c3e50;" id="data-tab" data-toggle="tab" href="#data" role="tab">Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #2c3e50;" id="describe-tab" data-toggle="tab" href="#describe" role="tab">Describe</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color: #2c3e50;" id="preview-tab" data-toggle="tab" href="#preview" role="tab">Preview</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="data" role="tabpanel">
+                        <div id="tableContainer"></div>
+                    </div>
+                    <div class="tab-pane fade" id="describe" role="tabpanel">
+                        <h4>Data Description</h4>
+                        <!-- Add data description content here -->
+                    </div>
+                    <div class="tab-pane fade" id="preview" role="tabpanel">
+                        <h4>Data Preview</h4>
+                        <!-- Add data preview content here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals for data operations -->
+    <div class="modal fade" id="deleteDataModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Delete Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="deleteColumn">Column:</label>
+                            <input type="text" class="form-control" id="deleteColumn">
+                        </div>
+                        <div class="form-group">
+                            <label for="deleteRow">Row:</label>
+                            <input type="text" class="form-control" id="deleteRow">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="replaceDataModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Replace Data</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="replaceColumn">Column:</label>
+                            <input type="text" class="form-control" id="replaceColumn">
+                        </div>
+                        <div class="form-group">
+                            <label for="replaceValue">Replace:</label>
+                            <input type="text" class="form-control" id="replaceValue">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Replace</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editValueModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Value</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="editRowId">Row ID:</label>
+                            <input type="text" class="form-control" id="editRowId">
+                        </div>
+                        <div class="form-group">
+                            <label for="editColumn">Column:</label>
+                            <input type="text" class="form-control" id="editColumn">
+                        </div>
+                        <div class="form-group">
+                            <label for="newValue">New Value:</label>
+                            <input type="text" class="form-control" id="newValue">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.full.min.js"></script>
+    <script>
+        // Initialize Handsontable
+        var container = document.getElementById('tableContainer');
+        var hot = new Handsontable(container, {
+            data: Handsontable.helper.createSpreadsheetData(10, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            licenseKey: 'non-commercial-and-evaluation'
+        });
+
+        // Event listeners for modal triggers
+        document.getElementById('deleteDataBtn').addEventListener('click', function () {
+            $('#deleteDataModal').modal('show');
+        });
+
+        document.getElementById('replaceDataBtn').addEventListener('click', function () {
+            $('#replaceDataModal').modal('show');
+        });
+
+        document.getElementById('editValueBtn').addEventListener('click', function () {
+            $('#editValueModal').modal('show');
+        });
+
+        // File input change event
+        document.getElementById('uploadDataBtn').addEventListener('click', function () {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = function (event) {
+                var file = event.target.files[0];
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var csv = e.target.result;
+                    var data = CSVToArray(csv);
+                    hot.loadData(data);
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        });
+
+        // CSV to Array function (from your original code)
+        function CSVToArray(strData, strDelimiter) {
+            strDelimiter = (strDelimiter || ",");
+            var objPattern = new RegExp((
+                "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                "([^\"\\" + strDelimiter + "\\r\\n]*))"), "gi");
+            var arrData = [[]];
+            var arrMatches = null;
+            while (arrMatches = objPattern.exec(strData)) {
+                var strMatchedDelimiter = arrMatches[1];
+                if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+                    arrData.push([]);
+                }
+                if (arrMatches[2]) {
+                    var strMatchedValue = arrMatches[2].replace(new RegExp("\"\"", "g"), "\"");
+                } else {
+                    var strMatchedValue = arrMatches[3];
+                }
+                arrData[arrData.length - 1].push(strMatchedValue);
+            }
+            return arrData;
+        }
+    </script>
+</body>
+
+</html>
