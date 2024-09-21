@@ -11,18 +11,10 @@
     {% block title %}
     <title>Login</title>
     {% endblock %}
-    <style>
-        .form-container {
-            display: none;
-        }
-
-        .form-container.active {
-            display: block;
-        }
-    </style>
 </head>
 
 <body>
+    {% block content %}
     <div class="wrapper">
         <div class="container main">
             <div class="row">
@@ -30,70 +22,37 @@
                     <img src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
                 </div>
                 <div class="col-md-6 right">
-                    <!-- Login Form -->
                     <div class="input-box form-container" id="login-form">
                         <header>Login</header>
-                        <div class="input-field">
-                            <input type="text" class="input" id="login-email" required autocomplete="off">
-                            <label for="login-email">Email</label>
-                        </div>
-                        <div class="input-field">
-                            <input type="password" class="input" id="login-pass" required>
-                            <label for="login-pass">Password</label>
-                        </div>
-                        <div class="input-field">
-                            <input type="submit" class="submit" value="Log In">
-                        </div>
-                        <div class="signin">
-                            <span>Don't have an account? <a href="#" id="show-signup">Sign up here</a></span>
-                        </div>
+                        <form action="{% url 'login' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="input-field">
+                                <input type="text" class="input" name="username" required>
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="input-field">
+                                <input type="password" class="input" name="password" required>
+                                <label for="password">Password</label>
+                            </div>
+                            <div class="input-field">
+                                <input type="submit" class="submit" value="Log In">
+                            </div>
+                            {% if messages %}
+                            <ul>
+                                {% for message in messages %}
+                                <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                            <div class="signin">
+                                <span>Don't have an account? <a href="/register">Sign up here</a></span>
+                            </div>
                     </div>
-                    <!-- Signup Form -->
-                    <div class="input-box form-container" id="signup-form">
-                        <header>Sign Up</header>
-                        <div class="input-field">
-                            <input type="text" class="input" id="signup-email" required autocomplete="off">
-                            <label for="signup-email">Email</label>
-                        </div>
-                        <div class="input-field">
-                            <input type="password" class="input" id="signup-pass" required>
-                            <label for="signup-pass">Password</label>
-                        </div>
-                        <div class="input-field">
-                            <input type="submit" class="submit" value="Sign Up">
-                        </div>
-                        <div class="signin">
-                            <span>Already have an account? <a href="#" id="show-login">Log in here</a></span>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        // Get elements
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const showLoginLink = document.getElementById('show-login');
-        const showSignupLink = document.getElementById('show-signup');
-
-        // Show the signup form initially
-        loginForm.classList.add('active');
-
-        // Event listeners for toggling forms
-        showLoginLink.addEventListener('click', function () {
-            signupForm.classList.remove('active');
-            loginForm.classList.add('active');
-        });
-
-        showSignupLink.addEventListener('click', function () {
-            loginForm.classList.remove('active');
-            signupForm.classList.add('active');
-        });
-    </script>
-
+    {% endblock %}
 </body>
 
 </html>

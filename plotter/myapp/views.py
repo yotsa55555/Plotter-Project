@@ -1,11 +1,64 @@
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.contrib.auth.models import User
+from .models import CSVFile
+from .forms import CSVUploadForm
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.io as pio
+
+def register(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm-password')
+        email = request.POST.get('email')
+
+        if not username or not password or not confirm_password or not email:
+            messages.error(request, "All fields are required")
+            return render(request, 'myapp/register.html')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match")
+            return render(request, 'myapp/register.html')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username is already taken")
+            return render(request, 'myapp/register.html')
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email is already registered")
+            return render(request, 'myapp/register.html')
+
+        user = User.objects.create_user(username=username, password=password, email=email)
+        user.save()
+
+        messages.success(request, "Account created successfully")
+        return redirect('login') 
+
+    return render(request, 'myapp/register.html')
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('data')
+            else:
+                messages.error(request, 'Invalid credentials')
+        else:
+            messages.error(request, 'Invalid credentials')
+    return render(request, 'myapp/login.html')
 
 
 def index(request):
@@ -14,11 +67,6 @@ def index(request):
 
 def about(request):
     return render(request, "myapp/about.html")
-
-
-def login(request):
-    return render(request, "myapp/login.html")
-
 
 def contact(request):
     return render(request, "myapp/contact.html")
@@ -33,7 +81,7 @@ class PlotViz:
         self.request = request
         self.plot_div = None
         self.columns = []
-        self.data = self.get_data_from_session()
+        self.data = self.get_user_data()
         self.x_column = self.request.POST.get("x_column", "")
         self.y_column = self.request.POST.get("y_column", "")
         self.plot_title = self.request.POST.get("plot_title", "Data Plot")
@@ -45,12 +93,16 @@ class PlotViz:
         self.show_grid = "show_grid" in self.request.POST
         self.show_legend = "show_legend" in self.request.POST
 
-    def get_data_from_session(self):
-        if "data" in self.request.session:
-            data_dict = self.request.session["data"]
-            data = pd.DataFrame.from_dict(data_dict)
-            self.columns = list(data.columns)
-            return data
+    def get_user_data(self):
+        user = self.request.user
+        if user.is_authenticated:
+            try:
+                csv_file = CSVFile.objects.filter(user=user).latest('uploaded_at') 
+                data = pd.read_csv(csv_file.file.path)
+                self.columns = list(data.columns)
+                return data
+            except CSVFile.DoesNotExist:
+                return pd.DataFrame()
         return pd.DataFrame()
 
     def render_plot(self):
@@ -398,20 +450,26 @@ class DataHandler:
         self.request = request
         self.page_obj = None
         self.columns = None
-        self.data = self.get_session_data()
+        self.data = self.get_user_data()
 
-    def get_session_data(self):
-        if "data" in self.request.session:
-            data_dict = self.request.session["data"]
-            return pd.DataFrame.from_dict(data_dict)
+    def get_user_data(self):
+        user = self.request.user
+        if user.is_authenticated:
+            try:
+                csv_file = CSVFile.objects.filter(user=user).latest('uploaded_at') 
+                data = pd.read_csv(csv_file.file.path)
+                self.columns = list(data.columns)
+                return data
+            except CSVFile.DoesNotExist:
+                return pd.DataFrame()
         return pd.DataFrame()
 
-    def set_session_data(self, data):
-        self.request.session["data"] = data.to_dict()
-        self.request.session["columns"] = list(data.columns)
+    def set_user_data(self, csv_file):
+        self.request.session["csv_file_id"] = csv_file.id
+        self.request.session["columns"] = list(pd.read_csv(csv_file.file.path).columns)
 
-    def clear_session_data(self):
-        self.request.session.pop("data", None)
+    def clear_user_data(self):
+        self.request.session.pop("csv_file_id", None)
         self.request.session.pop("columns", None)
 
     def paginate_data(self):
@@ -419,7 +477,8 @@ class DataHandler:
             paginator = Paginator(self.data.values.tolist(), 10)
             page_number = self.request.GET.get("page")
             self.page_obj = paginator.get_page(page_number)
-            self.columns = self.request.session.get("columns", [])
+            if not self.columns:
+                self.columns = list(self.data.columns)
 
     def process_request(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -430,10 +489,12 @@ class CSVUploadHandler(DataHandler):
         csv_file = self.request.FILES.get("csv_file")
         if not csv_file.name.endswith(".csv"):
             return HttpResponse("This is not a CSV file")
+        
+        user = self.request.user
 
         try:
-            data = pd.read_csv(csv_file)
-            self.set_session_data(data)
+            csv_file_model = CSVFile.objects.create(file=csv_file, user=user)
+            self.set_user_data(csv_file_model)
         except Exception as e:
             messages.error(self.request, f"Failed to process the CSV file: {e}")
             return redirect("/data")
@@ -443,7 +504,7 @@ class CSVUploadHandler(DataHandler):
 
 class ClearDataHandler(DataHandler):
     def process_request(self):
-        self.clear_session_data()
+        self.clear_user_data()
         messages.success(self.request, "Data has been cleared.")
         return redirect("/data")
 
@@ -452,7 +513,11 @@ class CleanDataHandler(DataHandler):
     def process_request(self):
         if not self.data.empty:
             cleaned_data = check_data(self.data)
-            self.set_session_data(cleaned_data)
+            csv_file_id = self.request.session.get("csv_file_id")
+            if csv_file_id:
+                csv_file = CSVFile.objects.get(id=csv_file_id)
+                cleaned_data.to_csv(csv_file.file.path, index=False)
+                self.set_user_data(csv_file)
             messages.success(self.request, "Data has been cleaned.")
         return redirect("/data")
 
@@ -463,7 +528,11 @@ class ReplaceDataHandler(DataHandler):
         to_replace = self.request.POST.get("to_replace")
         if column and to_replace and not self.data.empty:
             replaced_data = replace_data(self.data, column, to_replace)
-            self.set_session_data(replaced_data)
+            csv_file_id = self.request.session.get("csv_file_id")
+            if csv_file_id:
+                csv_file = CSVFile.objects.get(id=csv_file_id)
+                replaced_data.to_csv(csv_file.file.path, index=False)
+                self.set_user_data(csv_file)
             messages.success(
                 self.request, f"Data in column '{column}' has been replaced."
             )
@@ -475,13 +544,17 @@ class DeleteColumnHandler(DataHandler):
         column = self.request.POST.get("column_id")
         if column in self.data.columns:
             self.data = self.data.drop(columns=[column])
-            self.set_session_data(self.data)
+            csv_file_id = self.request.session.get("csv_file_id")
+            if csv_file_id:
+                csv_file = CSVFile.objects.get(id=csv_file_id)
+                self.data.to_csv(csv_file.file.path, index=False)
+                self.set_user_data(csv_file)
             messages.success(self.request, f"Column '{column}' has been deleted.")
         else:
             messages.error(self.request, f"Column '{column}' does not exist.")
         return redirect("/data")
 
-
+@login_required
 def data(request):
     handler = None
 
@@ -511,20 +584,62 @@ def data(request):
         {"page_obj": handler.page_obj, "columns": handler.columns},
     )
 
+class DescribeData(DataHandler):
+    def process_request(self):
+        description = None
+        columns = None
+        user = self.request.user
 
+        if not self.data.empty:
+            try:
+                csv_file = CSVFile.objects.filter(user=user).latest('uploaded_at')
+                data = pd.read_csv(csv_file.file.path)
+                
+                columns = list(data.columns)
+                
+                description = data.describe().round(2)
+                
+                for column in columns:
+                    description.loc['dtype', column] = data[column].dtype
+                    description.loc['null_count', column] = data[column].isnull().sum()
+                    description.loc['unique_count', column] = data[column].nunique()
+                
+                description = description.to_html(classes="table table-striped table-hover")
+                
+                column_info = []
+                for column in columns:
+                    info = {
+                        'name': column,
+                        'dtype': str(data[column].dtype),
+                        'null_count': data[column].isnull().sum(),
+                        'unique_count': data[column].nunique(),
+                    }
+                    if data[column].dtype in ['object', 'category']:
+                        info['top_values'] = data[column].value_counts().head(5).to_dict()
+                    column_info.append(info)
+                
+            except CSVFile.DoesNotExist:
+                messages.error(self.request, "CSV file not found. Please upload a file first.")
+                return redirect('data')
+            except Exception as e:
+                messages.error(self.request, f"An error occurred while processing the data: {str(e)}")
+                return redirect('data')
+        else:
+            messages.info(self.request, "No CSV file has been uploaded yet.")
+            return redirect('data')
+
+        context = {
+            "description": description,
+            "columns": columns,
+            "column_info": column_info
+        }
+        
+        return render(self.request, "myapp/describe.html", context)
+    
+@login_required
 def describe_data(request):
-    description = None
-    columns = None
-
-    if "data" in request.session:
-        data_dict = request.session["data"]
-        data = pd.DataFrame.from_dict(data_dict)
-        columns = list(data.columns)
-        description = data.describe().round(2).to_html(classes="table table-striped")
-
-    return render(
-        request, "myapp/describe.html", {"description": description, "columns": columns}
-    )
+    handler = DescribeData(request)
+    return handler.process_request()
 
 
 def check_data(data):

@@ -1,0 +1,57 @@
+{% extends "myapp/login.html" %}
+{% load static %}
+
+{% block title %}
+<title>Register</title>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="container main">
+        <div class="row">
+            <div class="col-md-6 side-image">
+                <img src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+            </div>
+            <div class="col-md-6 right">
+                <div class="input-box form-container" id="signup-form">
+                    <header>Sign Up</header>
+                    <form action="{% url 'register' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="input-field">
+                            <input type="text" class="input" id="username" name="username" required>
+                            <label for="username">Username</label>
+                        </div>
+                        <div class="input-field">
+                            <input type="text" class="input" id="email" name="email" required>
+                            <label for="email">Email</label>
+                        </div>
+                        <div class="input-field">
+                            <input type="password" class="input" id="password" name="password" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <div class="input-field">
+                            <input type="password" class="input" id="confirm-password" name="confirm-password" required>
+                            <label for="confirm-password">Confirm Password</label>
+                        </div>
+                        <div class="input-field">
+                            <input type="submit" class="submit" value="Sign Up">
+                        </div>
+                        {% if messages %}
+                        <ul>
+                            {% for message in messages %}
+                            <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        <div class="signin">
+                            <span>Already have an account? <a href="/login">Log in here</a></span>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

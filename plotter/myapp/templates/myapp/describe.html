@@ -2,25 +2,65 @@
 {% extends "myapp/data.html" %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Describe Data</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
+
 <body>
+
     {% block content %}
-    <div class="container mt-5">
-        <h2>Data Description</h2>
-        {% if description %}
-            <div class="table-responsive">
-                {{ description|safe }}
-            </div>
-        {% else %}
-            <p>No data available. Please upload a dataset first.</p>
-        {% endif %}
-        <a href="{% url 'data' %}" class="btn btn-primary mt-3">Back to Data</a>
-    </div>
+    <h2>Data Description</h2>
+
+    {% if description %}
+    {{ description|safe }}
+    {% else %}
+    <p>No description available.</p>
+    {% endif %}
+
+    <h2>Column Information</h2>
+
+    {% if column_info %}
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Column</th>
+                <th>Data Type</th>
+                <th>Null Count</th>
+                <th>Unique Count</th>
+                <th>Top Values</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for info in column_info %}
+            <tr>
+                <td>{{ info.name }}</td>
+                <td>{{ info.dtype }}</td>
+                <td>{{ info.null_count }}</td>
+                <td>{{ info.unique_count }}</td>
+                <td>
+                    {% if info.top_values %}
+                    <ul>
+                        {% for value, count in info.top_values.items %}
+                        <li>{{ value }}: {{ count }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No column information available.</p>
+    {% endif %}
+
     {% endblock %}
 </body>
+
 </html>
