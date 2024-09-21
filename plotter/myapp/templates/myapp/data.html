@@ -26,6 +26,9 @@
             <li><a href="/data">Data</a></li>
             <li><a href="/describe">Describe Data</a></li>
             <li><a href="/selectPlot">Plot Data</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="/logout" class="nav-btn">Log Out</a></li>
+            {% endif %}
         </ul>
     </header>
     {% block content %}
