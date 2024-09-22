@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'myapp/de.css' %}" type="text/css">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    {% block title %}
+        <title>Plotty</title>
+    {% endblock %}
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">
+            <img src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+            </a>
+        <ul class="navlist">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+        </ul>        
+
+        <div class="right-content">
+            <a href="/login" class="nav-btn">Log In</a>
+            <div class="bx bx-menu" id="menu-icon"></div>
+        </div>
+    </header>
+ 
+    <section class="hero">
+        <div class="hero-text">
+            <h5>#Plot your data with ease</h5>
+            <h1>Plotter</h1>
+            <p>Welcome to our CSV Manipulation and Plotting Website, a versatile and user-friendly tool designed to help you effortlessly handle your data. Whether you are a data analyst, scientist, or simply someone working with CSV files, our platform offers everything you need to make sense of your data. Here is what you can do on our website.</p>
+            <div class="main-hero">
+                <a href="/data" class="btn">Get Started</a>
+            </div>
+        </div>
+
+        <div class="hero-img">
+            <img src="{% static 'myapp/images/home_image.jpg' %}">
+        </div>
+    </section> 
+    
+</body>
+</html>

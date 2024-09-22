@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
+    <title>Data</title>
+    <style>
+        .form-inline .form-group {
+            margin-right: 10px;
+        }
+        #tableContainer {
+            width: 100%;
+            height: 500px;
+            margin-top: 20px;
+            display: none; 
+        }
+    </style>
+    </style>
+</head>
+
+<body>
+    <header>
+        <ul class="navlist">
+            <li><a href="/data">Data</a></li>
+            <li><a href="/describe">Describe Data</a></li>
+            <li><a href="/selectPlot">Plot Data</a></li>
+        </ul>
+    </header>
+    {% block content %}
+    <div class="container mt-5">
+        <h1>Upload CSV and Display Table</h1>
+        <hr>
+        <form method="POST" enctype="multipart/form-data" class="mb-4">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="file" name="csv_file" id="csvFileInput" class="form-control-file">
+            </div>
+            <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
+            <!--<button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>-->
+            <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2 mr-2">Clean Data</button>
+        </form>
+
+        <form method="POST" class="form-inline">
+            {% csrf_token %}
+            <button type="button" id="replace-data-button" class="btn btn-warning mb-2">Replace Data</button>
+        </form>
+
+        <div id="replace-data-form" style="display: none;">
+            <form method="POST" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="column" class="mr-2">Column:</label>
+                    <input type="text" name="column" id="column" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <div class="form-group">
+                    <label for="to_replace" class="mr-2">Replace:</label>
+                    <input type="text" name="to_replace" id="to_replace" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <button type="submit" name="replace_data" value="true" class="btn btn-warning mb-2">Submit</button>
+            </form>
+        </div>
+
+        <form method="POST" class="form-inline">
+            {% csrf_token %}
+            <button type="button" id="delete-column-button" value="true" class="btn btn-warning mb-2">Delete
+                Column</button>
+        </form>
+
+        <div id="delete-column-form" style="display: none;">
+            <form method="POST" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="column_id" class="mr-2">Column:</label>
+                    <input type="text" name="column_id" id="column_id" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <button type="submit" name="delete_column" value="true" class="btn btn-warning mb-2">Submit</button>
+            </form>
+        </div>
+
+        <form method="POST" class="form-inline">
+            {% csrf_token %}
+            <button type="button" id="delete-row-button" value="true" class="btn btn-warning mb-2">Delete Row</button>
+        </form>
+
+        <div id="delete-row-form" style="display: none;">
+            <form method="POST" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="row_id" class="mr-2">Row:</label>
+                    <input type="text" name="row_id" id="row_id" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <button type="submit" name="delete_row" value="true" class="btn btn-warning mb-2">Submit</button>
+            </form>
+        </div>
+
+        <form method="POST" class="form-inline">
+            {% csrf_token %}
+            <button type="button" id="edit-value-button" class="btn btn-warning mb-2">Edit value</button>
+        </form>
+
+        <div id="edit-form" style="display: none;">
+            <form method="POST" class="form-inline">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="row_id" class="mr-2">Row ID:</label>
+                    <input type="text" name="row_id" id="row_id" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <div class="form-group">
+                    <label for="column" class="mr-2">Column:</label>
+                    <input type="text" name="column" id="column" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_value" class="mr-2">New Value:</label>
+                    <input type="text" name="new_value" id="new_value" class="form-control mb-2 mr-sm-2" required>
+                </div>
+                <button type="submit" name="edit_value" value="true" class="btn btn-warning mb-2">Submit</button>
+            </form>
+        </div>
+
+        <script>
+            document.getElementById('edit-value-button').addEventListener('click', function () {
+                var editForm = document.getElementById('edit-form');
+                if (editForm.style.display === 'none') {
+                    editForm.style.display = 'block';
+                } else {
+                    editForm.style.display = 'none';
+                }
+            });
+
+            document.getElementById('delete-row-button').addEventListener('click', function () {
+                var deleteRowForm = document.getElementById('delete-row-form');
+                if (deleteRowForm.style.display === 'none') {
+                    deleteRowForm.style.display = 'block';
+                } else {
+                    deleteRowForm.style.display = 'none';
+                }
+            });
+
+            document.getElementById('delete-column-button').addEventListener('click', function () {
+                var deleteColumnForm = document.getElementById('delete-column-form');
+                if (deleteColumnForm.style.display === 'none') {
+                    deleteColumnForm.style.display = 'block';
+                } else {
+                    deleteColumnForm.style.display = 'none';
+                }
+            });
+
+            document.getElementById('replace-data-button').addEventListener('click', function () {
+                var replaceDataForm = document.getElementById('replace-data-form');
+                if (replaceDataForm.style.display === 'none') {
+                    replaceDataForm.style.display = 'block';
+                } else {
+                    replaceDataForm.style.display = 'none';
+                }
+            });
+        </script>
+
+        {% if page_obj %}
+        <h2 class="mt-5">Data from CSV</h2>
+        <table class="table table-striped" align="center">
+            <thead>
+                <tr>
+                    {% if columns %}
+                    {% for col in columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if page_obj %}
+                {% for row in page_obj %}
+                <tr>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="{{ columns|length }}">No data available</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                <li class="page-item">
+                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% endblock %}
+
+</body>
+
+</html>
