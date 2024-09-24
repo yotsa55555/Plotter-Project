@@ -1,0 +1,121 @@
+{% extends "myapp/data.html" %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histogram</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+    {% block content %}
+
+    <div class="container">
+        <h1>Histogram Plot</h1>
+
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+
+            <div class="plot-form-section">
+                <div class="form-group">
+                    <label for="x_column">X-axis Column:</label>
+                    <select name="x_column" id="x_column" class="form-control">
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="y_column">Y-axis Column:</label>
+                    <select name="y_column" id="y_column" class="form-control">
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="plot_title">Plot Title:</label>
+                    <input type="text" name="plot_title" id="plot_title" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="title_font_size">Title Font Size:</label>
+                    <input type="number" name="title_font_size" id="title_font_size" class="form-control" min="10"
+                        max="50" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="plot_style">Style:</label>
+                    <select name="plot_style" id="plot_style" class="form-control">
+                        <option value="plotly">Default</option>
+                        <option value="plotly_dark">Dark</option>
+                        <option value="ggplot2">ggplot2</option>
+                        <option value="seaborn">Seaborn</option>
+                        <option value="simple_white">Simple White</option>
+                        <option value="presentation">Presentation</option>
+                        <option value="xgridoff">xgridoff</option>
+                        <option value="ygridoff">ygridoff</option>
+                        <option value="gridon">Grid On</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+
+                <!-- Box Color (optional) -->
+                <div class="form-group">
+                    <label for="plot_color">Histogram Color:</label>
+                    <input type="color" name="plot_color" id="plot_color" class="form-control" value="#000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="num_bins">Number of Bins:</label>
+                    <input type="number" name="num_bins" id="num_bins" class="form-control" min="1" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="bin_width">Bin Width:</label>
+                    <input type="number" name="bin_width" id="bin_width" class="form-control" min="0.1" step="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label for="x_axis_label">X-axis Label:</label>
+                    <input type="text" name="x_axis_label" id="x_axis_label" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="y_axis_label">Y-axis Label:</label>
+                    <input type="text" name="y_axis_label" id="y_axis_label" class="form-control">
+                </div>
+            </div>
+
+            <!-- Grid option -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="show_grid" id="show_grid">
+                <label class="form-check-label" for="show_grid">Show Grid</label>
+            </div>
+
+            <!-- Legend option -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="show_legend" id="show_legend">
+                <label class="form-check-label" for="show_legend">Show Legend</label>
+            </div>
+
+            <div id="histogram_plot_section" class="mt-4">
+                <button type="submit" name="histogram_plot" class="btn btn-success">Generate Histogram Plot</button>
+            </div>
+
+            {% if plot_div %}
+            <div>{{ plot_div|safe }}</div>
+            {% else %}
+            <p>No data available to plot.</p>
+            {% endif %}
+    </div>
+
+    {% endblock %}
+</body>
+
+</html>

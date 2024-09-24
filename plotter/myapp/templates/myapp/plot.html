@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plot Data</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script>
+        function showForm(type) {
+            // Hide all plot-form-section elements
+            const plotForms = document.querySelectorAll('.plot-form-section');
+            plotForms.forEach(form => form.style.display = 'none');
+
+            // Show the general plot-form-section elements
+            const generalForms = document.querySelectorAll('.plot-form-section');
+            generalForms.forEach(form => form.style.display = 'block');
+
+            // Show the specific plot section
+            const specificForm = document.getElementById(type);
+            if (specificForm) {
+                specificForm.style.display = 'block';
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Data Plot</h1>
+
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" onclick="showForm('scatter_plot_section')">ScatterPlot</button>
+                <button type="button" class="btn btn-primary"onclick="showForm('histogram_plot_section')">Histogram</button>
+                <button type="button" class="btn btn-primary" onclick="showForm('bar_plot_section')">Bar Plot</button>
+                <button type="button" class="btn btn-primary" onclick="showForm('line_plot_section')">Line Plot</button>
+                <button type="button" class="btn btn-primary" onclick="showForm('box_plot_section')">Box Plot</button>
+                <button type="button" class="btn btn-primary" onclick="showForm('pie_plot_section')">Pie Chart</button>
+            </div>
+
+            <div class="plot-form-section" style="display:none;">
+                <div class="form-group">
+                    <label for="x_column">X-axis Column:</label>
+                    <select name="x_column" id="x_column" class="form-control">
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="y_column">Y-axis Column:</label>
+                    <select name="y_column" id="y_column" class="form-control">
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="group_column">Group By Column:</label>
+                    <select name="group_column" id="group_column" class="form-control">
+                        <option value="">None</option>
+                        {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="plot_title">Plot Title:</label>
+                    <input type="text" name="plot_title" id="plot_title" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="plot_style">Style:</label>
+                    <select name="plot_style" id="plot_style" class="form-control">
+                        <option value="plotly">Default</option>
+                        <option value="plotly_dark">Dark</option>
+                        <option value="ggplot2">ggplot2</option>
+                        <option value="seaborn">Seaborn</option>
+                        <option value="simple_white">Simple White</option>
+                        <option value="presentation">Presentation</option>
+                        <option value="xgridoff">xgridoff</option>
+                        <option value="ygridoff">ygridoff</option>
+                        <option value="gridon">Grid On</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="plot_color">Color:</label>
+                    <select name="plot_color" id="plot_color" class="form-control">
+                        <option value="#FF0000">Red</option>
+                        <option value="#00FF00">Green</option>
+                        <option value="#0000FF">Blue</option>
+                        <option value="#FFA500">Orange</option>
+                        <option value="#800080">Purple</option>
+                        <option value="#FFC0CB">Pink</option>
+                        <option value="#FFFF00">Yellow</option>
+                        <option value="#008080">Teal</option>
+                        <option value="#808080">Gray</option>
+                        <option value="#000000">Black</option>
+                        <option value="#FFFFFF">White</option>
+                        <option value="#00FFFF">Cyan</option>
+                        <option value="#FF00FF">Magenta</option>
+                        <option value="#00FF00">Lime</option>
+                        <option value="#A52A2A">Brown</option>
+                        <option value="#000080">Navy</option>
+                        <option value="#808000">Olive</option>
+                        <option value="#800000">Maroon</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <!-- Sections for each plot type -->
+            <div id="scatter_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="scatter_plot" class="btn btn-success">Generate Scatter Plot</button>
+            </div>
+
+            <div id="histogram_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="histogram_plot" class="btn btn-success">Generate Histogram</button>
+            </div>
+
+            <div id="bar_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="bar_plot" class="btn btn-success">Generate Bar Plot</button>
+            </div>
+
+            <div id="line_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="line_plot" class="btn btn-success">Generate Line Plot</button>
+            </div>
+
+            <div id="box_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="box_plot" class="btn btn-success">Generate Box Plot</button>
+            </div>
+
+            <div id="pie_plot_section" class="plot-form-section" style="display:none;">
+                <button type="submit" name="pie_plot" class="btn btn-success">Generate Pie Chart</button>
+            </div>
+        </form>
+
+        {% if plot_div %}
+        <div>{{ plot_div|safe }}</div>
+        {% else %}
+        <p>No data available to plot.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>
