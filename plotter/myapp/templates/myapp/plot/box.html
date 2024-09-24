@@ -1,21 +1,24 @@
 {% extends "myapp/data.html" %}
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Optimized Box Plot</title>
+    <title>Box Plot</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
     {% block content %}
-    <div class="container">
-        <h1>Generate Box Plot</h1>
-
+    <div class="sidebar">
+        <div class="logo">
+            <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+        </div>
+        <h5>Select Options</h5>
         <form method="post" class="mb-4">
             {% csrf_token %}
 
-            <!-- Axis selection -->
             <div class="form-group">
                 <label for="x_column">X-axis Column:</label>
                 <select name="x_column" id="x_column" class="form-control">
@@ -34,7 +37,6 @@
                 </select>
             </div>
 
-            <!-- Plot title -->
             <div class="form-group">
                 <label for="plot_title">Plot Title:</label>
                 <input type="text" name="plot_title" id="plot_title" class="form-control">
@@ -61,58 +63,114 @@
                 </select>
             </div>
 
-            <!-- Box Color (optional) -->
             <div class="form-group">
                 <label for="plot_color">Box Color:</label>
                 <input type="color" name="plot_color" id="plot_color" class="form-control" value="#000000">
             </div>
 
-            <!-- X-axis Label -->
             <div class="form-group">
                 <label for="x_axis_label">X-axis Label:</label>
                 <input type="text" name="x_axis_label" id="x_axis_label" class="form-control">
             </div>
 
-            <!-- Y-axis Label -->
             <div class="form-group">
                 <label for="y_axis_label">Y-axis Label:</label>
                 <input type="text" name="y_axis_label" id="y_axis_label" class="form-control">
             </div>
 
-            <!-- Box points option -->
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="show_boxpoints" id="show_boxpoints">
                 <label class="form-check-label" for="show_boxpoints">Show Data Points</label>
             </div>
 
-            <!-- Grid option -->
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="show_grid" id="show_grid">
                 <label class="form-check-label" for="show_grid">Show Grid</label>
             </div>
 
-            <!-- Legend option -->
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="show_legend" id="show_legend">
                 <label class="form-check-label" for="show_legend">Show Legend</label>
             </div>
 
-            <!-- Submit button -->
             <div id="box_plot_section" class="mt-4">
                 <button type="submit" name="box_plot" class="btn btn-primary">Generate Box Plot</button>
             </div>
-
-            <!-- Plot rendering section -->
-            {% if plot_div %}
-            <div class="mt-4">
-                {{ plot_div|safe }}
-            </div>
-            {% else %}
-            <p class="mt-4">No data available to plot.</p>
-            {% endif %}
         </form>
     </div>
 
+    <div class="main-content" style="overflow-y: auto; height: 100vh;">
+        <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>{{ user.username }}</h1>
+            <div>
+                {% if user.is_authenticated %}
+                    <button class="btn btn-primary">Export</button>
+                    <a href="/logout" class="btn" style="background-color: red; color: white;">
+                        <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;" alt="Logout">
+                        Log Out
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'data' %}" role="tab">Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'describe' %}" role="tab">Describe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'selectPlot' %}" role="tab">Preview</a>
+            </li>
+        </ul>
+
+        <div class="table-container">
+            <h2 class="mt-5">Box Plot</h2>
+            <div class="plot-container mt-4">
+                {% if plot_div %}
+                    {{ plot_div|safe }}
+                {% else %}
+                    <p>No data available to plot.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            position: fixed;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        h5 {
+            margin-top: 1rem;
+        }
+
+        .btn-primary {
+            margin-top: 10px;
+        }
+
+        .plot-container {
+            max-width: 100%;
+            overflow: hidden;
+        }
+    </style>
     {% endblock %}
 </body>
 </html>

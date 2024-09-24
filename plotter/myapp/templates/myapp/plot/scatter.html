@@ -1,28 +1,15 @@
 {% extends "myapp/data.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scatter</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
-    <link rel="stylesheet" href="{% static 'myapp/data.css' %}">
-</head>
-
-<body>
-    {% block content %}
-
-    <div class="container">
-        <h1>Scatter Plot</h1>
-
-        <form method="post" class="mb-4">
-            {% csrf_token %}
-
-            <div class="plot-form-section">
-                <!-- X-axis Column Selection -->
+{% block content %}
+        <div class="sidebar">
+            <div class="logo">
+                <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+            </div>
+    <h5>Select Options</h5>
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <!-- Select options form -->
                 <div class="form-group">
                     <label for="x_column">X-axis Column:</label>
                     <select name="x_column" id="x_column" class="form-control">
@@ -31,7 +18,6 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="y_column">Y-axis Column:</label>
                     <select name="y_column" id="y_column" class="form-control">
@@ -40,35 +26,22 @@
                         {% endfor %}
                     </select>
                 </div>
-
-
-                <!-- Plot Title -->
                 <div class="form-group">
                     <label for="plot_title">Plot Title:</label>
                     <input type="text" name="plot_title" id="plot_title" class="form-control" value="{{ plot_title }}">
                 </div>
-
                 <div class="form-group">
                     <label for="title_font_size">Title Font Size:</label>
-                    <input type="number" name="title_font_size" id="title_font_size" class="form-control" min="10"
-                        max="50" step="1">
+                    <input type="number" name="title_font_size" id="title_font_size" class="form-control" min="10" max="50" step="1">
                 </div>
-
-                <!-- Marker Size -->
                 <div class="form-group">
                     <label for="marker_size">Marker Size:</label>
-                    <input type="number" name="marker_size" id="marker_size" class="form-control"
-                        value="{{ marker_size }}" min="1">
+                    <input type="number" name="marker_size" id="marker_size" class="form-control" value="{{ marker_size }}" min="1">
                 </div>
-
-                <!-- Marker Color -->
                 <div class="form-group">
                     <label for="marker_color">Marker Color:</label>
-                    <input type="color" name="marker_color" id="marker_color" class="form-control"
-                        value="{{ plot_color }}">
+                    <input type="color" name="marker_color" id="marker_color" class="form-control" value="{{ plot_color }}">
                 </div>
-
-                <!-- Marker Type -->
                 <div class="form-group">
                     <label for="marker_type">Marker Type:</label>
                     <select name="marker_type" id="marker_type" class="form-control">
@@ -80,8 +53,6 @@
                         <option value="x">X</option>
                     </select>
                 </div>
-
-                <!-- Plot Style Selection -->
                 <div class="form-group">
                     <label for="plot_style">Style:</label>
                     <select name="plot_style" id="plot_style" class="form-control">
@@ -97,48 +68,101 @@
                         <option value="none">None</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="x_axis_label">X-axis Label:</label>
                     <input type="text" name="x_axis_label" id="x_axis_label" class="form-control">
                 </div>
-
                 <div class="form-group">
                     <label for="y_axis_label">Y-axis Label:</label>
                     <input type="text" name="y_axis_label" id="y_axis_label" class="form-control">
                 </div>
-
-                <!-- Grid option -->
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="show_grid" id="show_grid">
                     <label class="form-check-label" for="show_grid">Show Grid</label>
                 </div>
-
-                <!-- Legend option -->
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="show_legend" id="show_legend">
                     <label class="form-check-label" for="show_legend">Show Legend</label>
                 </div>
-
-    
-
-                <!-- Scatter Plot Generation Button -->
                 <div id="scatter_plot_section" class="mt-4">
                     <button type="submit" name="scatter_plot" class="btn btn-success">Generate Scatter Plot</button>
                 </div>
+            </form>
+        </li>
+    </ul>
+</div>
 
-                <!-- Display the Plot -->
-                {% if plot_div %}
-                <div>{{ plot_div|safe }}</div>
-                {% else %}
-                <p>No data available to plot.</p>
-                {% endif %}
-            </div>
-        </form>
+<div class="main-content" style="overflow-y: auto; height: 100vh;">
+    <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>{{ user.username }}</h1>
+        <div>
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary">Export</button>
+                <a href="/logout" class="btn" style="background-color: red; color: white;">
+                    <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;" alt="Logout">
+                    Log Out
+                </a>
+            {% endif %}
+        </div>
     </div>
 
-    {% endblock %}
-</body>
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'data' %}" role="tab">Data</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'describe' %}" role="tab">Describe</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="{% url 'selectPlot' %}" role="tab">Preview</a>
+        </li>
+    </ul>
 
+    <div class="table-container">
+        <h2 class="mt-5">Scatter Plot</h2>
+        <div class="plot-container mt-4">
+            {% if plot_div %}
+                {{ plot_div|safe }}
+            {% else %}
+                <p>No data available to plot.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-</html>
+<style>
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 20px;
+    
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        position: fixed; /* ทำให้ติดขอบซ้าย */
+    }
+
+    .main-content {
+        margin-left: 250px; /* Same width as sidebar */
+        padding: 20px;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    h5 {
+        margin-top: 1rem;
+    }
+
+    .btn-primary {
+        margin-top: 10px;
+    }
+
+    .plot-container {
+        max-width: 100%;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
