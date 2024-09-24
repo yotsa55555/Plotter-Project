@@ -1,4 +1,5 @@
 {% extends "myapp/data.html" %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,26 +8,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plot Data</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/data.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/selectplot.css' %}">
 </head>
 
 <body>
     {% block content %}
-    <div class="container">
-
-        <form method="post" class="mb-4">
-            {% csrf_token %}
-
-            <div class="form-group">
-                <button type="button"><a href="/scatter">ScatterPlot</a></button>
-                <button type="button"><a href="/histogram">Histogram</a></button>
-                <button type="button"><a href="/bar">Bar Plot</a></button>
-                <button type="button"><a href="/line">Line Plot</a></button>
-                <button type="button"><a href="/box">Box Plot</a></button>
-                <button type="button"><a href="/pie">Pie Chart</a></button>
-            </div>
-
+    <div class="sidebar">
+        <div class="logo">
+            <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+        </div>
     </div>
-    {% endblock %}
+
+    <div class="main-content">
+        <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>{{ user.username }} Data</h1>
+            <div>
+                {% if user.is_authenticated %}
+                <a href="" class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
+                <a href="/logout" class="btn" style="background-color: red; color: white;">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;"> Log Out
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/data/' %}active{% endif %}" href="{% url 'data' %}"
+                    role="tab">Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}" href="{% url 'describe' %}"
+                    role="tab">Describe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}"
+                    href="{% url 'selectPlot' %}" role="tab">Preview</a>
+            </li>
+        </ul>
+
+        <div class="table-container">
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <a href="/scatter">
+                            <img src="{% static 'myapp/images/scatter.png' %}" alt="Scatter Plot" class="img-fluid">
+                        </a>
+                        <p>Scatter Plot</p>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/histogram">
+                            <img src="{% static 'myapp/images/histogram.png' %}" alt="Histogram" class="img-fluid">
+                        </a>
+                        <p>Histogram</p>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/bar">
+                            <img src="{% static 'myapp/images/bar.png' %}" alt="Bar Plot" class="img-fluid">
+                        </a>
+                        <p>Bar Plot</p>
+                    </div>
+                </div>
+                <div class="row text-center mt-4">
+                    <div class="col-md-4">
+                        <a href="/line">
+                            <img src="{% static 'myapp/images/line.png' %}" alt="Line Plot" class="img-fluid">
+                        </a>
+                        <p>Line Plot</p>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/box">
+                            <img src="{% static 'myapp/images/box.png' %}" alt="Box Plot" class="img-fluid">
+                        </a>
+                        <p>Box Plot</p>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="/pie">
+                            <img src="{% static 'myapp/images/pie.png' %}" alt="Pie Chart" class="img-fluid">
+                        </a>
+                        <p>Pie Chart</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        {% endblock %}
 </body>
 
 </html>

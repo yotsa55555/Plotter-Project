@@ -24,8 +24,13 @@
         </ul>        
 
         <div class="right-content">
-            <a href="/login" class="nav-btn">Log In</a>
-            <div class="bx bx-menu" id="menu-icon"></div>
+            {% if user.is_authenticated %}
+                <a href="/logout" class="nav-btn">Log Out</a>
+                <div class="bx bx-menu" id="menu-icon"></div>
+            {% else %}
+                <a href="/login" class="nav-btn">Log In</a>
+                <div class="bx bx-menu" id="menu-icon"></div>
+            {% endif %}
         </div>
     </header>
  
@@ -35,7 +40,11 @@
             <h1>Plotter</h1>
             <p>Welcome to our CSV Manipulation and Plotting Website, a versatile and user-friendly tool designed to help you effortlessly handle your data. Whether you are a data analyst, scientist, or simply someone working with CSV files, our platform offers everything you need to make sense of your data. Here is what you can do on our website.</p>
             <div class="main-hero">
-                <a href="/data" class="btn">Get Started</a>
+                {% if user.is_authenticated %}
+                    <a href="/data" class="btn">Get Started</a>
+                {% else %}
+                    <a href="/login" class="btn">Get Started</a>
+                {% endif %}
             </div>
         </div>
 

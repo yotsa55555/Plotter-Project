@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 
@@ -5,119 +6,237 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
+    <link rel="stylesheet" href="{% static 'myapp/data.css' %}">
     <title>Data</title>
     <style>
         .form-inline .form-group {
             margin-right: 10px;
         }
+
         #tableContainer {
             width: 100%;
             height: 500px;
             margin-top: 20px;
-            display: none; 
+            display: none;
         }
+        .button-container {
+        display: flex;
+        justify-content: flex-end; /* จัดปุ่มให้ชิดขอบขวา */
+        margin-top: 10px; /* ระยะห่างด้านบนสำหรับปุ่ม */
+        }
+
+        .btn {
+            transition: background-color 0.3s, transform 0.2s;
+            margin-left: 10px; /* ระยะห่างระหว่างปุ่ม */
+        }
+
+        .btn:hover {
+            background-color: darkorange; /* สีเมื่อ hover */
+            transform: scale(1.05); /* ขยายขนาดปุ่มเล็กน้อย */
+        }
+
+        .btn:focus {
+            outline: none; /* ลบกรอบที่ไม่ต้องการเมื่อ focus */
+            box-shadow: 0 0 5px rgba(255, 165, 0, 0.5); /* เงาเมื่อ focus */
+        }
+</style>
+
     </style>
     </style>
 </head>
 
 <body>
     <header>
-        <ul class="navlist">
-            <li><a href="/data">Data</a></li>
-            <li><a href="/describe">Describe Data</a></li>
-            <li><a href="/selectPlot">Plot Data</a></li>
-        </ul>
-    </header>
-    {% block content %}
-    <div class="container mt-5">
-        <h1>Upload CSV and Display Table</h1>
-        <hr>
-        <form method="POST" enctype="multipart/form-data" class="mb-4">
-            {% csrf_token %}
-            <div class="form-group">
-                <input type="file" name="csv_file" id="csvFileInput" class="form-control-file">
+        {% block content %}
+    <div class="sidebar-wrapper">
+        <div class="sidebar">
+            <div class="logo"> 
+                <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
             </div>
-            <button type="submit" class="btn btn-primary mb-2 mr-2">Upload</button>
-            <!--<button type="submit" name="clear_data" value="true" class="btn btn-danger mb-2 mr-2">Clear Data</button>-->
-            <button type="submit" name="clean_data" value="true" class="btn btn-warning mb-2 mr-2">Clean Data</button>
-        </form>
 
-        <form method="POST" class="form-inline">
-            {% csrf_token %}
-            <button type="button" id="replace-data-button" class="btn btn-warning mb-2">Replace Data</button>
-        </form>
+            <ul class="nav flex-column">
+                <!-- Upload Data -->
+                <li class="nav-item upload-section">
+                    <form method="POST" enctype="multipart/form-data" class="mb-4">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="file" name="csv_file" id="csvFileInput" class="form-control-file">
+                        </div>
+                        <button type="submit" class="nav-link btn btn-primary mb-2">Upload Data</button>
+                    </form>
+                </li>
 
-        <div id="replace-data-form" style="display: none;">
-            <form method="POST" class="form-inline">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="column" class="mr-2">Column:</label>
-                    <input type="text" name="column" id="column" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <div class="form-group">
-                    <label for="to_replace" class="mr-2">Replace:</label>
-                    <input type="text" name="to_replace" id="to_replace" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <button type="submit" name="replace_data" value="true" class="btn btn-warning mb-2">Submit</button>
-            </form>
+                <!-- Clean Data -->
+                <li class="nav-item">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <a href="#" onclick="this.closest('form').submit()" class="nav-link">Clean Data</a>
+                        <input type="hidden" name="clean_data" value="true">
+                    </form>
+                </li>
+
+                <!-- Replace Data -->
+                <li class="nav-item">
+                    <a href="#" id="replace-data-button" class="nav-link">Replace Data</a>
+                    <div id="replace-data-form" style="display: none;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="column">Column:</label>
+                                <input type="text" name="column" id="column" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="to_replace">Replace:</label>
+                                <input type="text" name="to_replace" id="to_replace" class="form-control" required>
+                            </div>
+                            <button type="submit" name="replace_data" value="true" class="btn btn-warning">Submit</button>
+                        </form>
+                    </div>
+                </li>
+        
+                <!-- Delete Column -->
+                <li class="nav-item">
+                    <a href="#" id="delete-column-button" class="nav-link">Delete Column</a>
+                    <div id="delete-column-form" style="display: none;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="column_id">Column:</label>
+                                <input type="text" name="column_id" id="column_id" class="form-control" required>
+                            </div>
+                            <button type="submit" name="delete_column" value="true" class="btn btn-warning">Submit</button>
+                        </form>
+                    </div>
+                </li>
+        
+                <!-- Delete Row -->
+                <li class="nav-item">
+                    <a href="#" id="delete-row-button" class="nav-link">Delete Row</a>
+                    <div id="delete-row-form" style="display: none;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="row_id">Row:</label>
+                                <input type="text" name="row_id" id="row_id" class="form-control" required>
+                            </div>
+                            <button type="submit" name="delete_row" value="true" class="btn btn-warning">Submit</button>
+                        </form>
+                    </div>
+                </li>
+        
+                <!-- Edit Value -->
+                <li class="nav-item">
+                    <a href="#" id="edit-value-button" class="nav-link">Edit Value</a>
+                    <div id="edit-form" style="display: none;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="row_id">Row ID:</label>
+                                <input type="text" name="row_id" id="row_id" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="column">Column:</label>
+                                <input type="text" name="column" id="column" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new_value">New Value:</label>
+                                <input type="text" name="new_value" id="new_value" class="form-control" required>
+                            </div>
+                            <button type="submit" name="edit_value" value="true" class="btn btn-warning">Submit</button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
         </div>
 
-        <form method="POST" class="form-inline">
-            {% csrf_token %}
-            <button type="button" id="delete-column-button" value="true" class="btn btn-warning mb-2">Delete
-                Column</button>
-        </form>
+        <div class="main-content">
 
-        <div id="delete-column-form" style="display: none;">
-            <form method="POST" class="form-inline">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="column_id" class="mr-2">Column:</label>
-                    <input type="text" name="column_id" id="column_id" class="form-control mb-2 mr-sm-2" required>
+            <!-- top bar (Export) & (Log Out) -->
+            <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>{{ user.username }}</h1>
+                <div>
+                    {% if user.is_authenticated %}
+                    <a href="" class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
+                    <a href="/logout" class="btn" style="background-color: red; color: white;">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;"> Log Out
+                    </a>
+                    {% endif %}
                 </div>
-                <button type="submit" name="delete_column" value="true" class="btn btn-warning mb-2">Submit</button>
-            </form>
+            </div>
+
+
+            <!--tabs-->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/data/' %}active{% endif %}" href="{% url 'data' %}"
+                        role="tab">Data</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}"
+                        href="{% url 'describe' %}" role="tab">Describe</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}"
+                        href="{% url 'selectPlot' %}" role="tab">Preview</a>
+                </li>
+            </ul>
+
+            <!--table-->
+            <div class="table-container">
+                <h2 class="mt-5">Data from CSV</h2>
+                <table class="table table-striped" align="center">
+                    <thead>
+                        <tr>
+                            {% if columns %}
+                            {% for col in columns %}
+                            <th>{{ col }}</th>
+                            {% endfor %}
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if page_obj %}
+                        {% for row in page_obj %}
+                        <tr>
+                            {% for cell in row %}
+                            <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="{{ columns|length }}">No data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+
+                <nav>
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item">
+                            <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
         </div>
 
-        <form method="POST" class="form-inline">
-            {% csrf_token %}
-            <button type="button" id="delete-row-button" value="true" class="btn btn-warning mb-2">Delete Row</button>
-        </form>
 
-        <div id="delete-row-form" style="display: none;">
-            <form method="POST" class="form-inline">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="row_id" class="mr-2">Row:</label>
-                    <input type="text" name="row_id" id="row_id" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <button type="submit" name="delete_row" value="true" class="btn btn-warning mb-2">Submit</button>
-            </form>
-        </div>
 
-        <form method="POST" class="form-inline">
-            {% csrf_token %}
-            <button type="button" id="edit-value-button" class="btn btn-warning mb-2">Edit value</button>
-        </form>
 
-        <div id="edit-form" style="display: none;">
-            <form method="POST" class="form-inline">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="row_id" class="mr-2">Row ID:</label>
-                    <input type="text" name="row_id" id="row_id" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <div class="form-group">
-                    <label for="column" class="mr-2">Column:</label>
-                    <input type="text" name="column" id="column" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <div class="form-group">
-                    <label for="new_value" class="mr-2">New Value:</label>
-                    <input type="text" name="new_value" id="new_value" class="form-control mb-2 mr-sm-2" required>
-                </div>
-                <button type="submit" name="edit_value" value="true" class="btn btn-warning mb-2">Submit</button>
-            </form>
-        </div>
+
+
 
         <script>
             document.getElementById('edit-value-button').addEventListener('click', function () {
@@ -156,54 +275,6 @@
                 }
             });
         </script>
-
-        {% if page_obj %}
-        <h2 class="mt-5">Data from CSV</h2>
-        <table class="table table-striped" align="center">
-            <thead>
-                <tr>
-                    {% if columns %}
-                    {% for col in columns %}
-                    <th>{{ col }}</th>
-                    {% endfor %}
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% if page_obj %}
-                {% for row in page_obj %}
-                <tr>
-                    {% for cell in row %}
-                    <td>{{ cell }}</td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="{{ columns|length }}">No data available</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
-
-        <nav>
-            <ul class="pagination">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-                <li class="page-item">
-                    <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-                </li>
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
         {% endblock %}
 
 </body>
