@@ -516,11 +516,19 @@ class ClearDataHandler(DataHandler):
 class CleanDataHandler(DataHandler):
     def process_request(self):
         if not self.data.empty:
-            cleaned_data = check_data(self.data)
+            cleaned_data = self.check_data(self.data)
             self.set_user_data(cleaned_data)
             messages.success(self.request, "Data has been cleaned.")
         return redirect("/data")
-
+    
+    @staticmethod
+    def check_data(data):
+        if data.isnull().any().any():
+            df_cleaned = data.dropna()
+            return df_cleaned
+        else:
+            return data
+        
 class DeleteColumnHandler(DataHandler):
     def process_request(self):
         column = self.request.POST.get("column_id")
@@ -537,13 +545,47 @@ class ReplaceDataHandler(DataHandler):
         column = self.request.POST.get("column")
         to_replace = self.request.POST.get("to_replace")
         value = self.request.POST.get("value")
+        
         if column and to_replace and not self.data.empty:
-            self.data[column] = self.data[column].replace(to_replace, value)
-            self.set_user_data(self.data)
-            messages.success(
-                self.request, f"Data in column '{column}' has been replaced."
+            try:
+                self.data = self.replace_data(self.data, column, to_replace, value)
+                self.set_user_data(self.data)
+                messages.success(
+                    self.request, f"Data in column '{column}' has been replaced."
+                )
+            except Exception as e:
+                messages.error(
+                    self.request, f"An error occurred while replacing data: {str(e)}"
+                )
+        else:
+            messages.warning(
+                self.request, "Missing required fields or empty data."
             )
+        
         return redirect("/data")
+    
+    @staticmethod
+    def replace_data(data, column, to_replace, replacement):
+        try:
+            if to_replace.lower() == "true" or to_replace.lower() == "false":
+                to_replace = to_replace.lower() == "true"
+            else:
+                try:
+                    to_replace = int(to_replace)
+                except ValueError:
+                    try:
+                        to_replace = float(to_replace)
+                    except ValueError:
+                        pass
+            
+            if replacement.lower() == "nan":
+                replacement = np.nan
+            
+            data[column] = data[column].replace(to_replace, replacement)
+        except Exception as e:
+            raise Exception(f"Error in replace_data: {e}")
+        
+        return data
 
 @login_required
 def data(request):
@@ -665,40 +707,6 @@ class DescribeData(DataHandler):
 def describe_data(request):
     handler = DescribeData(request)
     return handler.process_request()
-
-
-def check_data(data):
-    if data.isnull().any().any():
-        df_cleaned = clean_data(data)
-        return df_cleaned
-    else:
-        return data
-
-
-def clean_data(data):
-    try:
-        df_cleaned = data.dropna()
-        return df_cleaned
-    except Exception as e:
-        return data
-
-
-def replace_data(data, column, to_replace, replacement=np.nan):
-    try:
-        if to_replace.lower() == "true" or to_replace.lower() == "false":
-            to_replace = to_replace.lower() == "true"
-        else:
-            try:
-                to_replace = int(to_replace)
-            except ValueError:
-                try:
-                    to_replace = float(to_replace)
-                except ValueError:
-                    pass
-        data[column] = data[column].replace(to_replace, replacement)
-    except Exception as e:
-        print(f"Error in replace_data: {e}")
-    return data
 
 
 # def delete_column(data):
