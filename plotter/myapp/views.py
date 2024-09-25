@@ -617,35 +617,6 @@ def data(request):
         {"page_obj": handler.page_obj, "columns": handler.columns},
     )
 
-@login_required
-def data(request):
-    handler = None
-
-    if request.method == "POST":
-        if "csv_file" in request.FILES:
-            handler = CSVUploadHandler(request)
-        elif "clear_data" in request.POST:
-            handler = ClearDataHandler(request)
-        elif "clean_data" in request.POST:
-            handler = CleanDataHandler(request)
-        elif "replace_data" in request.POST:
-            handler = ReplaceDataHandler(request)
-        elif "delete_column" in request.POST:
-            handler = DeleteColumnHandler(request)
-
-        if handler:
-            response = handler.process_request()
-            if response:
-                return response
-
-    handler = DataHandler(request)
-    handler.paginate_data()
-
-    return render(
-        request,
-        "myapp/data.html",
-        {"page_obj": handler.page_obj, "columns": handler.columns},
-    )
 
 class DescribeData(DataHandler):
     def process_request(self):
