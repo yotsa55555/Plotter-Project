@@ -91,7 +91,7 @@
             <h1>{{ user.username }}</h1>
             <div>
                 {% if user.is_authenticated %}
-                    <button class="btn btn-primary">Export</button>
+                    <a href="" class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
                     <a href="/logout" class="btn" style="background-color: red; color: white;">
                         <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;" alt="Logout">
                         Log Out
