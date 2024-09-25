@@ -79,7 +79,6 @@ def contact(request):
 def select_viz(request):
     viz = PlotViz(request)
     if not viz.data.empty:
-        viz.create_plot()
         return render(request, "myapp/selectPlot.html")
     else:
         messages.error(request, "Data is empty")
