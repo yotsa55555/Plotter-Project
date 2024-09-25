@@ -53,7 +53,7 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('data')
+                return redirect('index')
             else:
                 messages.error(request, 'Invalid credentials')
         else:

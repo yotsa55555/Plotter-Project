@@ -9,7 +9,6 @@
     <title>Plot Data</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
-    <link rel="stylesheet" href="{% static 'myapp/data.css' %}">
     <link rel="stylesheet" href="{% static 'myapp/selectplot.css' %}">
 </head>
 
@@ -35,18 +34,15 @@
             </div>
         </div>
 
-        <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link {% if request.path == '/data/' %}active{% endif %}" href="{% url 'data' %}"
-                    role="tab">Data</a>
+                <a class="nav-link" href="{% url 'data' %}" role="tab">Data</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}" href="{% url 'describe' %}"
-                    role="tab">Describe</a>
+                <a class="nav-link" href="{% url 'describe' %}" role="tab">Describe</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}"
-                    href="{% url 'selectPlot' %}" role="tab">Preview</a>
+                <a class="nav-link active" href="{% url 'selectPlot' %}" role="tab">Preview</a>
             </li>
         </ul>
 
@@ -97,7 +93,7 @@
         </div>
     </div>
 
-        {% endblock %}
+    {% endblock %}
 </body>
 
 </html>

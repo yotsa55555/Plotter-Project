@@ -1,5 +1,6 @@
 .main-content {
     padding: 20px;
+    overflow: hidden;
 }
 
 .top-bar {
@@ -7,21 +8,29 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding: 10px 0;
 }
 
 .nav-tabs {
     margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
 }
 
 .plot-options {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    justify-content: space-between;
 }
 
 .plot-option {
     flex: 0 0 calc(33.333% - 20px);
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.plot-option:hover {
+    transform: translateY(-5px);
 }
 
 .plot-option a {
@@ -30,14 +39,27 @@
     align-items: center;
     text-decoration: none;
     color: #333;
+    transition: color 0.3s ease;
+}
+
+.plot-option a:hover {
+    color: #000;
 }
 
 .plot-option img {
     width: 100%;
     max-width: 150px;
     margin-bottom: 10px;
+    border-radius: 5px;
+    transition: opacity 0.3s ease;
+}
+
+.plot-option a:hover img {
+    opacity: 0.8;
 }
 
 .plot-option span {
     font-size: 14px;
+    font-weight: bold;
 }
+

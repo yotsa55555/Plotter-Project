@@ -209,14 +209,15 @@
                             role="tab">Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}"
-                            href="{% url 'describe' %}" role="tab">Describe</a>
+                        <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}" href="{% url 'describe' %}"
+                            role="tab">Describe</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}"
-                            href="{% url 'selectPlot' %}" role="tab">Preview</a>
+                        <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}" href="{% url 'selectPlot' %}"
+                            role="tab">Preview</a>
                     </li>
                 </ul>
+
 
                 <!--table-->
                 <div class="table-container">
