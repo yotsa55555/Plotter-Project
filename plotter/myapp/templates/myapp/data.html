@@ -65,13 +65,32 @@
                 <ul class="nav flex-column">
                     <!-- Upload Data -->
                     <li class="nav-item upload-section">
-                        <form method="POST" enctype="multipart/form-data" class="mb-4">
+                        <form method="POST" enctype="multipart/form-data" class="mb-4" id="csvUploadForm">
                             {% csrf_token %}
                             <div class="form-group">
-                                <input type="file" name="csv_file" id="csvFileInput" class="form-control-file">
+                                <button type="button" id="csvFileButton" class="nav-link btn btn-primary mb-2">Select CSV File</button>
+                                <input type="file" name="csv_file" id="csvFileInput" class="form-control-file d-none">
                             </div>
-                            <button type="submit" class="nav-link btn btn-primary mb-2">Upload Data</button>
+                            <button type="submit" class="nav-link btn btn-success mb-2" id="submitBtn" disabled>Upload Data</button>
                         </form>
+                        
+                        <script>
+                            const csvFileButton = document.getElementById("csvFileButton");
+                            const csvFileInput = document.getElementById("csvFileInput");
+                            const submitBtn = document.getElementById("submitBtn");
+                        
+                            // When the button is clicked, trigger the hidden file input click
+                            csvFileButton.addEventListener("click", function() {
+                                csvFileInput.click();
+                            });
+                        
+                            // When a file is selected, enable the submit button
+                            csvFileInput.addEventListener("change", function() {
+                                if (csvFileInput.files.length > 0) {
+                                    submitBtn.disabled = false;
+                                }
+                            });
+                        </script>
                     </li>
 
                     <!-- Clean Data -->
