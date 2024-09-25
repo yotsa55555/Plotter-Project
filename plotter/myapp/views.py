@@ -77,7 +77,14 @@ def contact(request):
 
 
 def select_viz(request):
-    return render(request, "myapp/selectPlot.html")
+    viz = PlotViz(request)
+    if not viz.data.empty:
+        viz.create_plot()
+        return render(request, "myapp/selectPlot.html")
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
+
 
 
 class PlotViz:
@@ -412,41 +419,66 @@ class ScatterViz(PlotViz):
 
         return self.render_plot()
 
-
+    
 def bar_viz(request):
     viz = BarViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
 
 
 def box_viz(request):
     viz = BoxViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
 
 
 def histogram_viz(request):
     viz = HistogramViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
+
 
 
 def line_viz(request):
     viz = LineViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
 
 
 def pie_viz(request):
     viz = PieViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
 
 
 def scatter_viz(request):
     viz = ScatterViz(request)
-    viz.create_plot()
-    return viz.render_plot()
+    if not viz.data.empty:
+        viz.create_plot()
+        return viz.render_plot()
+    else:
+        messages.error(request, "Data is empty")
+        return redirect('data')
 
 
 class DataHandler:
