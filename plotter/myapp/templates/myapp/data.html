@@ -68,24 +68,26 @@
                         <form method="POST" enctype="multipart/form-data" class="mb-4" id="csvUploadForm">
                             {% csrf_token %}
                             <div class="form-group">
-                                <button type="button" id="csvFileButton" class="nav-link btn btn-primary mb-2">Select CSV File</button>
+                                <button type="button" id="csvFileButton" class="nav-link btn btn-primary mb-2">Select
+                                    CSV File</button>
                                 <input type="file" name="csv_file" id="csvFileInput" class="form-control-file d-none">
                             </div>
-                            <button type="submit" class="nav-link btn btn-success mb-2" id="submitBtn" disabled>Upload Data</button>
+                            <button type="submit" class="nav-link btn btn-success mb-2" id="submitBtn" disabled>Upload
+                                Data</button>
                         </form>
-                        
+
                         <script>
                             const csvFileButton = document.getElementById("csvFileButton");
                             const csvFileInput = document.getElementById("csvFileInput");
                             const submitBtn = document.getElementById("submitBtn");
-                        
+
                             // When the button is clicked, trigger the hidden file input click
-                            csvFileButton.addEventListener("click", function() {
+                            csvFileButton.addEventListener("click", function () {
                                 csvFileInput.click();
                             });
-                        
+
                             // When a file is selected, enable the submit button
-                            csvFileInput.addEventListener("change", function() {
+                            csvFileInput.addEventListener("change", function () {
                                 if (csvFileInput.files.length > 0) {
                                     submitBtn.disabled = false;
                                 }
@@ -209,12 +211,12 @@
                             role="tab">Data</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}" href="{% url 'describe' %}"
-                            role="tab">Describe</a>
+                        <a class="nav-link {% if request.path == '/describe/' %}active{% endif %}"
+                            href="{% url 'describe' %}" role="tab">Describe</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}" href="{% url 'selectPlot' %}"
-                            role="tab">Preview</a>
+                        <a class="nav-link {% if request.path == '/selectPlot/' %}active{% endif %}"
+                            href="{% url 'selectPlot' %}" role="tab">Preview</a>
                     </li>
                 </ul>
 
@@ -278,16 +280,10 @@
                         </ul>
                     </nav>
                     {% endif %}
-
                 </div>
             </div>
 
-
-
-
-
-
-
+            
             <script>
                 document.getElementById('edit-value-button').addEventListener('click', function () {
                     var editForm = document.getElementById('edit-form');
@@ -324,6 +320,7 @@
                         replaceDataForm.style.display = 'none';
                     }
                 });
+
             </script>
             {% endblock %}
 

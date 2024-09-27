@@ -67,11 +67,9 @@
                     <td>{{ info.unique_count }}</td>
                     <td>
                         {% if info.top_values %}
-                        <ul>
                             {% for value, count in info.top_values.items %}
-                            <li>{{ value }}: {{ count }}</li>
+                                value = {{ value }} count = {{count}}<br>
                             {% endfor %}
-                        </ul>
                         {% else %}
                         N/A
                         {% endif %}

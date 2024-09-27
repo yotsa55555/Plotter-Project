@@ -487,6 +487,25 @@ class DataHandler:
         self.columns = None
         self.user = request.user
         self.data = self.get_user_data()
+        self.data_display = None 
+        self.columns_display = None
+
+    def format_number(self, value):
+        if isinstance(value, (int, float)) and abs(value) >= 1000:
+            return f"{value:,}"
+        return value
+
+    def data_for_display(self):
+        if self.data.empty:
+            return pd.DataFrame()
+
+        self.data_display = self.data.copy()
+
+        for column in self.data_display.columns:
+            self.data_display[column] = self.data_display[column].apply(self.format_number)
+        self.columns_display = list(self.data_display.columns)
+
+        return self.data_display
 
     def get_user_data(self):
         if self.user.is_authenticated:
@@ -511,11 +530,11 @@ class DataHandler:
 
     def paginate_data(self):
         if not self.data.empty:
-            paginator = Paginator(self.data.values.tolist(), 10)
+            paginator = Paginator(self.data_display.values.tolist(), 10)
             page_number = self.request.GET.get("page")
             self.page_obj = paginator.get_page(page_number)
-            if not self.columns:
-                self.columns = list(self.data.columns)
+            if not self.columns_display:
+                self.columns_display = list(self.data_display.columns)
 
     def process_request(self):
         raise NotImplementedError("Subclasses must implement this method")
@@ -640,18 +659,23 @@ def data(request):
                 return response
 
     handler = DataHandler(request)
+    handler.data_for_display()
     handler.paginate_data()
 
     return render(
         request,
         "myapp/data.html",
-        {"page_obj": handler.page_obj, "columns": handler.columns},
+        {
+            "page_obj": handler.page_obj,
+            "columns": handler.columns_display,
+        },
     )
 
 
 class DescribeData(DataHandler):
     def process_request(self):
         description = None
+        description_display = None
         columns = None
         user = self.request.user
 
@@ -672,20 +696,28 @@ class DescribeData(DataHandler):
                     additional_info.loc['unique_count', column] = data[column].nunique()
                 
                 description = pd.concat([description, additional_info])
+
+                description_display = description.copy()
+
+                for column in description_display.columns:
+                    if pd.api.types.is_numeric_dtype(data[column]):
+                        description_display[column] = description_display[column].apply(self.format_number)
                 
-                description = description.to_html(classes="table table-striped table-hover")
+                
+                description_display = description_display.to_html(classes="table table-striped table-hover")
                 
                 column_info = []
                 for column in columns:
                     info = {
                         'name': column,
                         'dtype': str(data[column].dtype),
-                        'null_count': data[column].isnull().sum(),
-                        'unique_count': data[column].nunique(),
+                        'null_count': self.format_number(data[column].isnull().sum()),
+                        'unique_count': self.format_number(data[column].nunique()),
                     }
-                    if data[column].dtype in ['object', 'category']:
-                        info['top_values'] = data[column].value_counts().head(5).to_dict()
+                    if data[column].dtype in ['int64', 'float64']:
+                        info['top_values'] = data[column].value_counts().head(3).to_dict()
                     column_info.append(info)
+
                 
             except CSVFile.DoesNotExist:
                 messages.error(self.request, "CSV file not found. Please upload a file first.")
@@ -698,9 +730,9 @@ class DescribeData(DataHandler):
             return redirect('data')
 
         context = {
-            "description": description,
+            "description": description_display,
             "columns": columns,
-            "column_info": column_info
+            "column_info": column_info,
         }
         
         return render(self.request, "myapp/describe.html", context)

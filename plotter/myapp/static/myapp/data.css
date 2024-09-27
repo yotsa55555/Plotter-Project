@@ -7,6 +7,11 @@ body {
     overflow-y: auto;
 }
 
+.sidebar-wrapper {
+    height: 100vh;
+    overflow-y: auto;
+}
+
 .sidebar {
     scroll-behavior: smooth;
 }
@@ -65,29 +70,33 @@ body {
     font-weight: bold;
     color: #2c3e50;
 }
+
 .nav-tabs .nav-link:hover {
     color: #000000 !important;
 }
+
+/* Updated Table Styles */
+.table-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
 th,
 td {
     border: 1px solid #ddd;
     padding: 8px;
-    text-align: left;
+    text-align: right; /* Align data to the right */
 }
 
 th {
     background-color: #f2f2f2;
-}
-
-.table-container {
-    width: 100%;
-        max-width: 100%;
-        overflow-x: hidden;
-}
-
-.table-container {
-    width: 100%;
-    overflow-x: auto;
+    text-align: right; /* Keep headers left-aligned for readability */
 }
 
 .upload-section {
@@ -96,11 +105,6 @@ th {
 
 .upload-section form {
     padding-top: 20px;
-}
-.table-container {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
 }
 
 .row {
@@ -121,3 +125,4 @@ th {
     max-width: 100%;
     height: auto;
 }
+
