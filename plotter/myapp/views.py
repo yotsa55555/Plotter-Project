@@ -90,18 +90,10 @@ class PlotViz:
     def __init__(self, request):
         self.request = request
         self.plot_div = None
+        self.plot_div_type = None
         self.columns = []
         self.data = self.get_user_data()
-        self.x_column = self.request.POST.get("x_column", "")
-        self.y_column = self.request.POST.get("y_column", "")
-        self.plot_title = self.request.POST.get("plot_title", "Data Plot")
-        self.plot_color = self.request.POST.get("plot_color", None)
-        self.plot_style = self.request.POST.get("plot_style", None)
-        self.x_axis_label = self.request.POST.get("x_axis_label", "x")
-        self.y_axis_label = self.request.POST.get("y_axis_label", "y")
-        self.title_font_size_input = self.request.POST.get("title_font_size", "24")
-        self.show_grid = "show_grid" in self.request.POST
-        self.show_legend = "show_legend" in self.request.POST
+        self.load_from_session()
 
     def get_user_data(self):
         user = self.request.user
@@ -114,6 +106,45 @@ class PlotViz:
             except CSVFile.DoesNotExist:
                 return pd.DataFrame()
         return pd.DataFrame()
+    
+    def load_from_session(self):
+        session = self.request.session
+        self.x_column = session.get("x_column", "")
+        self.y_column = session.get("y_column", "")
+        self.plot_title = session.get("plot_title", "Data Plot")
+        self.plot_color = session.get("plot_color", None)
+        self.plot_style = session.get("plot_style", None)
+        self.x_axis_label = session.get("x_axis_label", "x")
+        self.y_axis_label = session.get("y_axis_label", "y")
+        self.title_font_size_input = session.get("title_font_size", 24)
+        self.show_grid = session.get("show_grid", False)
+        self.show_legend = session.get("show_legend", False)
+
+    def save_to_session(self):
+        session = self.request.session
+        session["x_column"] = self.x_column
+        session["y_column"] = self.y_column
+        session["plot_title"] = self.plot_title
+        session["plot_color"] = self.plot_color
+        session["plot_style"] = self.plot_style
+        session["x_axis_label"] = self.x_axis_label
+        session["y_axis_label"] = self.y_axis_label
+        session["title_font_size"] = self.title_font_size_input
+        session["show_grid"] = self.show_grid
+        session["show_legend"] = self.show_legend
+
+    def update_from_post(self):
+        self.x_column = self.request.POST.get("x_column", self.x_column)
+        self.y_column = self.request.POST.get("y_column", self.y_column)
+        self.plot_title = self.request.POST.get("plot_title", self.plot_title)
+        self.plot_color = self.request.POST.get("plot_color", self.plot_color)
+        self.plot_style = self.request.POST.get("plot_style", self.plot_style)
+        self.x_axis_label = self.request.POST.get("x_axis_label", self.x_axis_label)
+        self.y_axis_label = self.request.POST.get("y_axis_label", self.y_axis_label)
+        self.title_font_size_input = int(self.request.POST.get("title_font_size", self.title_font_size_input))
+        self.show_grid = "show_grid" in self.request.POST
+        self.show_legend = "show_legend" in self.request.POST
+        self.save_to_session()
 
     def render_plot(self):
         return render(
@@ -138,11 +169,17 @@ class BarViz(PlotViz):
 
     def create_plot(self):
         if "bar_plot" in self.request.POST and not self.data.empty:
-
+            self.update_from_post()
+            
             self.bar_mode = self.request.POST.get("bar_mode", "group")
             self.orientation = self.request.POST.get("orientation", "v")
             self.bar_width = float(self.request.POST.get("bar_width", 0.8))
             self.opacity = float(self.request.POST.get("opacity", 1.0))
+
+            self.request.session["bar_mode"] = self.bar_mode
+            self.request.session["orientation"] = self.orientation
+            self.request.session["bar_width"] = self.bar_width
+            self.request.session["opacity"] = self.opacity
 
             self.title_font_fix()
 
@@ -177,6 +214,9 @@ class BarViz(PlotViz):
             fig.update_layout(barmode=self.bar_mode)
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -186,8 +226,10 @@ class BoxViz(PlotViz):
 
     def create_plot(self):
         if "box_plot" in self.request.POST and not self.data.empty:
+            self.update_from_post()
 
             show_boxpoints = "show_boxpoints" in self.request.POST
+            self.request.session["show_boxpoints"] = show_boxpoints
             boxpoints_value = "all" if show_boxpoints else False
 
             self.title_font_fix()
@@ -217,6 +259,9 @@ class BoxViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -226,9 +271,11 @@ class HistogramViz(PlotViz):
 
     def create_plot(self):
         if "histogram_plot" in self.request.POST and not self.data.empty:
+            self.update_from_post()
 
             num_bins_str = self.request.POST.get("num_bins", "")
             bin_width_str = self.request.POST.get("bin_width", "")
+
 
             num_bins = int(num_bins_str) if num_bins_str.isdigit() else None
             bin_width = (
@@ -236,6 +283,9 @@ class HistogramViz(PlotViz):
                 if bin_width_str.replace(".", "", 1).isdigit()
                 else None
             )
+
+            self.request.session["num_bins"] = num_bins
+            self.request.session["bin_width"] = bin_width
 
             self.title_font_fix()
 
@@ -280,6 +330,9 @@ class HistogramViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -289,8 +342,13 @@ class LineViz(PlotViz):
 
     def create_plot(self):
         if "line_plot" in self.request.POST and not self.data.empty:
+            self.update_from_post()
+
             self.line_width = int(self.request.POST.get("line_width", 2))
             self.legend_position = self.request.POST.get("legend_position", "top")
+
+            self.request.session["line_width"] = self.line_width
+            self.request.session["legend_position"] = self.legend_position
 
             x_axis_label = self.x_axis_label or self.x_column
             y_axis_label = self.y_axis_label or self.y_column
@@ -334,6 +392,9 @@ class LineViz(PlotViz):
                 )
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -342,8 +403,13 @@ class PieViz(PlotViz):
 
     def create_plot(self):
         if "pie_plot" in self.request.POST and not self.data.empty:
+            self.update_from_post()
+
             self.hole_size = float(self.request.POST.get("hole_size", 0)) 
-            self.label_position = self.request.POST.get("label_position", "inside")  
+            self.label_position = self.request.POST.get("label_position", "inside")
+
+            self.request.session["hole_size"] = self.hole_size
+            self.request.session["label_position"] = self.label_position
 
             self.title_font_fix()
 
@@ -367,6 +433,9 @@ class PieViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -377,6 +446,7 @@ class ScatterViz(PlotViz):
 
     def create_plot(self):
         if "scatter_plot" in self.request.POST and not self.data.empty:
+            self.update_from_post()
 
             self.marker_type = self.request.POST.get("marker_type", None)
 
@@ -384,6 +454,9 @@ class ScatterViz(PlotViz):
                 self.marker_size = int(self.request.POST.get("marker_size", "5"))
             except (ValueError, TypeError):
                 self.marker_size = 5
+
+            self.request.session["marker_type"] = self.marker_type
+            self.request.session["marker_size"] = self.marker_size
 
             self.title_font_fix()
 
@@ -400,7 +473,6 @@ class ScatterViz(PlotViz):
             )
 
             if self.marker_type:
-                print(self.marker_type)
                 fig.update_traces(marker=dict(symbol=self.marker_type))
 
             fig.update_traces(marker=dict(size=self.marker_size, color=self.plot_color))
@@ -415,6 +487,9 @@ class ScatterViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_div'] = self.plot_div
+
+        self.plot_div = self.request.session.get('plot_div', None)
 
         return self.render_plot()
 
@@ -447,7 +522,6 @@ def histogram_viz(request):
     else:
         messages.error(request, "Data is empty")
         return redirect('data')
-
 
 
 def line_viz(request):
@@ -741,10 +815,6 @@ class DescribeData(DataHandler):
 def describe_data(request):
     handler = DescribeData(request)
     return handler.process_request()
-
-
-# def delete_column(data):
-# pass
 
 
 def delete_row(data):

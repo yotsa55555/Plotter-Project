@@ -24,7 +24,7 @@
                 <label for="x_column">X-axis Column:</label>
                 <select name="x_column" id="x_column" class="form-control">
                     {% for column in columns %}
-                    <option value="{{ column }}">{{ column }}</option>
+                    <option value="{{ column }}" {% if column == request.session.x_column %}selected{% endif %}>{{ column }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -32,73 +32,73 @@
                 <label for="y_column">Y-axis Column:</label>
                 <select name="y_column" id="y_column" class="form-control">
                     {% for column in columns %}
-                    <option value="{{ column }}">{{ column }}</option>
+                    <option value="{{ column }}" {% if column == request.session.y_column %}selected{% endif %}>{{ column }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label for="plot_title">Plot Title:</label>
-                <input type="text" name="plot_title" id="plot_title" class="form-control">
+                <input type="text" name="plot_title" id="plot_title" class="form-control" value="{{ request.session.plot_title }}">
             </div>
             <div class="form-group">
                 <label for="title_font_size">Title Font Size:</label>
-                <input type="number" name="title_font_size" id="title_font_size" class="form-control" min="10" max="50" step="1">
+                <input type="number" name="title_font_size" id="title_font_size" class="form-control" min="10" max="50" step="1" value="{{ request.session.title_font_size }}">
             </div>
             <div class="form-group">
                 <label for="plot_style">Style:</label>
                 <select name="plot_style" id="plot_style" class="form-control">
-                    <option value="plotly">Default</option>
-                    <option value="plotly_dark">Dark</option>
-                    <option value="ggplot2">ggplot2</option>
-                    <option value="seaborn">Seaborn</option>
-                    <option value="simple_white">Simple White</option>
-                    <option value="presentation">Presentation</option>
-                    <option value="xgridoff">xgridoff</option>
-                    <option value="ygridoff">ygridoff</option>
-                    <option value="gridon">Grid On</option>
-                    <option value="none">None</option>
+                    <option value="plotly" {% if request.session.plot_style == "plotly" %}selected{% endif %}>Default</option>
+                    <option value="plotly_dark" {% if request.session.plot_style == "plotly_dark" %}selected{% endif %}>Dark</option>
+                    <option value="ggplot2" {% if request.session.plot_style == "ggplot2" %}selected{% endif %}>ggplot2</option>
+                    <option value="seaborn" {% if request.session.plot_style == "seaborn" %}selected{% endif %}>Seaborn</option>
+                    <option value="simple_white" {% if request.session.plot_style == "simple_white" %}selected{% endif %}>Simple White</option>
+                    <option value="presentation" {% if request.session.plot_style == "presentation" %}selected{% endif %}>Presentation</option>
+                    <option value="xgridoff" {% if request.session.plot_style == "xgridoff" %}selected{% endif %}>xgridoff</option>
+                    <option value="ygridoff" {% if request.session.plot_style == "ygridoff" %}selected{% endif %}>ygridoff</option>
+                    <option value="gridon" {% if request.session.plot_style == "gridon" %}selected{% endif %}>Grid On</option>
+                    <option value="none" {% if request.session.plot_style == "none" %}selected{% endif %}>None</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="bar_color">Bar Color:</label>
-                <input type="color" name="plot_color" id="plot_color" class="form-control" value="{{ plot_color }}">
+                <input type="color" name="plot_color" id="plot_color" class="form-control" value="{{ request.session.plot_color|default:'#000000' }}">
             </div>
             <div class="form-group">
                 <label for="bar_mode">Bar Mode:</label>
                 <select name="bar_mode" id="bar_mode" class="form-control">
-                    <option value="group">Group</option>
-                    <option value="stack">Stack</option>
+                    <option value="group" {% if request.session.bar_mode == "group" %}selected{% endif %}>Group</option>
+                    <option value="stack" {% if request.session.bar_mode == "stack" %}selected{% endif %}>Stack</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="orientation">Bar Orientation:</label>
                 <select name="orientation" id="orientation" class="form-control">
-                    <option value="v">Vertical</option>
-                    <option value="h">Horizontal</option>
+                    <option value="v" {% if request.session.orientation == "v" %}selected{% endif %}>Vertical</option>
+                    <option value="h" {% if request.session.orientation == "h" %}selected{% endif %}>Horizontal</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="bar_width">Bar Width (0.1 to 1.0):</label>
-                <input type="number" step="0.1" name="bar_width" id="bar_width" class="form-control" value="0.8" min="0.1" max="1.0">
+                <input type="number" step="0.1" name="bar_width" id="bar_width" class="form-control" value="{{ request.session.bar_width|default:'0.8' }}" min="0.1" max="1.0">
             </div>
             <div class="form-group">
                 <label for="opacity">Opacity (0.1 to 1.0):</label>
-                <input type="number" step="0.1" name="opacity" id="opacity" class="form-control" value="1.0" min="0.1" max="1.0">
+                <input type="number" step="0.1" name="opacity" id="opacity" class="form-control" value="{{ request.session.opacity|default:'1.0' }}" min="0.1" max="1.0">
             </div>
             <div class="form-group">
                 <label for="x_axis_label">X-axis Label:</label>
-                <input type="text" name="x_axis_label" id="x_axis_label" class="form-control">
+                <input type="text" name="x_axis_label" id="x_axis_label" class="form-control" value="{{ request.session.x_axis_label }}">
             </div>
             <div class="form-group">
                 <label for="y_axis_label">Y-axis Label:</label>
-                <input type="text" name="y_axis_label" id="y_axis_label" class="form-control">
+                <input type="text" name="y_axis_label" id="y_axis_label" class="form-control" value="{{ request.session.y_axis_label }}">
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="show_grid" id="show_grid">
+                <input class="form-check-input" type="checkbox" name="show_grid" id="show_grid" {% if request.session.show_grid %}checked{% endif %}>
                 <label class="form-check-label" for="show_grid">Show Grid</label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="show_legend" id="show_legend">
+                <input class="form-check-input" type="checkbox" name="show_legend" id="show_legend" {% if request.session.show_legend %}checked{% endif %}>
                 <label class="form-check-label" for="show_legend">Show Legend</label>
             </div>
             <div id="bar_plot_section" class="mt-4">
@@ -139,7 +139,7 @@
                 {% if plot_div %}
                     {{ plot_div|safe }}
                 {% else %}
-                    <p>No data available to plot.</p>
+                    <p>No plot available.</p>
                 {% endif %}
             </div>
         </div>
