@@ -170,6 +170,7 @@ class BarViz(PlotViz):
     def create_plot(self):
         if "bar_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'bar')
             
             self.bar_mode = self.request.POST.get("bar_mode", "group")
             self.orientation = self.request.POST.get("orientation", "v")
@@ -214,9 +215,16 @@ class BarViz(PlotViz):
             fig.update_layout(barmode=self.bar_mode)
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('bar') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
@@ -227,6 +235,7 @@ class BoxViz(PlotViz):
     def create_plot(self):
         if "box_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'box')
 
             show_boxpoints = "show_boxpoints" in self.request.POST
             self.request.session["show_boxpoints"] = show_boxpoints
@@ -259,9 +268,16 @@ class BoxViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('box') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
@@ -272,6 +288,7 @@ class HistogramViz(PlotViz):
     def create_plot(self):
         if "histogram_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'histogram')
 
             num_bins_str = self.request.POST.get("num_bins", "")
             bin_width_str = self.request.POST.get("bin_width", "")
@@ -330,9 +347,16 @@ class HistogramViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('histogram') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
@@ -343,6 +367,7 @@ class LineViz(PlotViz):
     def create_plot(self):
         if "line_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'line')
 
             self.line_width = int(self.request.POST.get("line_width", 2))
             self.legend_position = self.request.POST.get("legend_position", "top")
@@ -392,9 +417,16 @@ class LineViz(PlotViz):
                 )
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('line') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
@@ -404,6 +436,7 @@ class PieViz(PlotViz):
     def create_plot(self):
         if "pie_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'pie')
 
             self.hole_size = float(self.request.POST.get("hole_size", 0)) 
             self.label_position = self.request.POST.get("label_position", "inside")
@@ -433,9 +466,16 @@ class PieViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('pie') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
@@ -447,6 +487,7 @@ class ScatterViz(PlotViz):
     def create_plot(self):
         if "scatter_plot" in self.request.POST and not self.data.empty:
             self.update_from_post()
+            plot_type = self.request.POST.get('plot_type', 'scatter')
 
             self.marker_type = self.request.POST.get("marker_type", None)
 
@@ -487,9 +528,16 @@ class ScatterViz(PlotViz):
             )
 
             self.plot_div = pio.to_html(fig, full_html=False)
-            self.request.session['plot_div'] = self.plot_div
 
-        self.plot_div = self.request.session.get('plot_div', None)
+            plot_div_dict = self.request.session.get('plot_div', {})
+            if not isinstance(plot_div_dict, dict):
+                plot_div_dict = {}
+            plot_div_dict[plot_type] = self.plot_div
+            self.request.session['plot_div'] = plot_div_dict
+            self.request.session.modified = True
+
+        plot_div_dict = self.request.session.get('plot_div', {})
+        self.plot_div = plot_div_dict.get('scatter') if isinstance(plot_div_dict, dict) else None
 
         return self.render_plot()
 
