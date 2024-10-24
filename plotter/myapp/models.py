@@ -14,6 +14,7 @@ class SavedPlot(models.Model):
     title = models.CharField(max_length=200)
     plot_type = models.CharField(max_length=50)
     plot_data = models.JSONField()
+    uploaded_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title

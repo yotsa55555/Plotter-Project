@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import CSVFile, SavedPlot
 from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
 import json
 
 import pandas as pd
@@ -175,7 +176,8 @@ class PlotViz:
                 plot_type=plot_type,
                 plot_data=plot_data,
             )
-            
+
+            plot.created_at = timezone.now()
             plot.save()
             return True, "Plot saved successfully."
             
@@ -1174,7 +1176,8 @@ def export_plots(request):
         plots_data.append({
             'id': plot.id,
             'title': plot.title,
-            'plot_data': plot.plot_data  # Assuming this is already JSON-serializable
+            'plot_data': plot.plot_data,  # Assuming this is already JSON-serializable
+            'uploaded_at': plot.uploaded_at,
         })
     context = {
         'saved_plots': saved_plots,  # For template iteration
