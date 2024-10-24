@@ -250,7 +250,7 @@
                             {% endif %}
                         </tbody>
                     </table>
-
+                
                     {% if page_obj.paginator.count > 0 %}
                     <nav>
                         <ul class="pagination">
@@ -263,11 +263,11 @@
                                 <a class="page-link" tabindex="-1">Previous</a>
                             </li>
                             {% endif %}
-
+                
                             <li class="page-item">
                                 <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
                             </li>
-
+                
                             {% if page_obj.has_next %}
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
@@ -281,6 +281,7 @@
                     </nav>
                     {% endif %}
                 </div>
+                
             </div>
 
             

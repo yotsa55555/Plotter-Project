@@ -634,6 +634,10 @@ class DataHandler:
             try:
                 csv_file = CSVFile.objects.filter(user=self.user).latest('uploaded_at') 
                 data = pd.read_csv(csv_file.file.path)
+                if 'Index' not in data.columns:
+                    data['Index'] = data.index
+                    cols = ['Index'] + [col for col in data.columns if col != 'Index']
+                    data = data[cols]
                 self.columns = list(data.columns)
                 return data
             except CSVFile.DoesNotExist:
@@ -657,7 +661,7 @@ class DataHandler:
             self.page_obj = paginator.get_page(page_number)
             if not self.columns_display:
                 self.columns_display = list(self.data_display.columns)
-
+    
     def process_request(self):
         raise NotImplementedError("Subclasses must implement this method")
     
@@ -758,6 +762,23 @@ class ReplaceDataHandler(DataHandler):
             raise Exception(f"Error in replace_data: {e}")
         
         return data
+    
+class DeleteRowHandler(DataHandler):
+    def process_request(self):
+        row = self.request.POST.get("row_id")
+        try:
+            row = int(row)
+        except ValueError:
+            messages.error(self.request, f"Row must be integer.")
+        if row in self.data["Index"].values:
+            row_index = self.data[self.data['Index'] == row].index[0]
+            self.data = self.data.drop(index=row_index)
+            print(self.data)
+            self.set_user_data(self.data)
+            messages.success(self.request, f"Row with ID '{row}' has been deleted.")
+        else:
+            messages.error(self.request, f"Row '{row}' does not exist.")
+        return redirect("/data")
 
 @login_required
 def data(request):
@@ -774,6 +795,8 @@ def data(request):
             handler = ReplaceDataHandler(request)
         elif "delete_column" in request.POST:
             handler = DeleteColumnHandler(request)
+        elif "delete_row" in request.POST:
+            handler = DeleteRowHandler(request)
 
         if handler:
             response = handler.process_request()
@@ -788,7 +811,7 @@ def data(request):
         request,
         "myapp/data.html",
         {
-            "page_obj": handler.page_obj,
+            "page_obj": handler.page_obj,  # Keep the page_obj for pagination controls
             "columns": handler.columns_display,
         },
     )
