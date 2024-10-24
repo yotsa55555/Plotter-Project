@@ -773,11 +773,53 @@ class DeleteRowHandler(DataHandler):
         if row in self.data["Index"].values:
             row_index = self.data[self.data['Index'] == row].index[0]
             self.data = self.data.drop(index=row_index)
-            print(self.data)
             self.set_user_data(self.data)
             messages.success(self.request, f"Row with ID '{row}' has been deleted.")
         else:
             messages.error(self.request, f"Row '{row}' does not exist.")
+        return redirect("/data")
+    
+class EditValueHandler(DataHandler):
+    def process_request(self):
+        column = self.request.POST.get("column")
+        row = self.request.POST.get("row_id")
+        value =  self.request.POST.get("new_value")
+        try:
+            row = int(row)
+        except ValueError:
+            messages.error(self.request, f"Row must be integer.")
+        if row in self.data["Index"].values and column in self.data.columns:
+            try:
+                # Get the actual index where Index column matches row
+                row_index = self.data[self.data['Index'] == row].index[0]
+                
+                # Try to convert value to appropriate type based on column data
+                original_type = self.data[column].dtype
+                if pd.api.types.is_numeric_dtype(original_type):
+                    try:
+                        if original_type == 'int64':
+                            value = int(value)
+                        else:
+                            value = float(value)
+                    except ValueError:
+                        messages.error(self.request, f"Value must be a number for column '{column}'.")
+                        return redirect("/data")
+                elif original_type == 'bool':
+                    value = value.lower() == 'true'
+                
+                # Update the value
+                self.data.at[row_index, column] = value
+                self.set_user_data(self.data)
+                messages.success(self.request, f"Value in column '{column}' at row {row} has been updated.")
+            
+            except Exception as e:
+                messages.error(self.request, f"Error updating value: {str(e)}")
+        else:
+            if row not in self.data["Index"].values:
+                messages.error(self.request, f"Row '{row}' does not exist.")
+            if column not in self.data.columns:
+                messages.error(self.request, f"Column '{column}' does not exist.")
+                
         return redirect("/data")
 
 @login_required
@@ -797,6 +839,8 @@ def data(request):
             handler = DeleteColumnHandler(request)
         elif "delete_row" in request.POST:
             handler = DeleteRowHandler(request)
+        elif "edit_value" in request.POST:
+            handler = EditValueHandler(request)
 
         if handler:
             response = handler.process_request()
