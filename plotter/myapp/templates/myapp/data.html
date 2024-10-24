@@ -6,74 +6,39 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
-    <link rel="stylesheet" href="{% static 'myapp/data.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/data_vv1.css' %}">
     <title>Data</title>
-    <style>
-        .form-inline .form-group {
-            margin-right: 10px;
-        }
 
-        #tableContainer {
-            width: 100%;
-            height: 500px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: flex-end;
-            /* จัดปุ่มให้ชิดขอบขวา */
-            margin-top: 10px;
-            /* ระยะห่างด้านบนสำหรับปุ่ม */
-        }
-
-        .btn {
-            transition: background-color 0.3s, transform 0.2s;
-            margin-left: 10px;
-            /* ระยะห่างระหว่างปุ่ม */
-        }
-
-        .btn:hover {
-            background-color: darkorange;
-            /* สีเมื่อ hover */
-            transform: scale(1.05);
-            /* ขยายขนาดปุ่มเล็กน้อย */
-        }
-
-        .btn:focus {
-            outline: none;
-            /* ลบกรอบที่ไม่ต้องการเมื่อ focus */
-            box-shadow: 0 0 5px rgba(255, 165, 0, 0.5);
-            /* เงาเมื่อ focus */
-        }
-    </style>
-
-    </style>
-    </style>
 </head>
 
 <body>
     <header>
         {% block content %}
         <div class="sidebar-wrapper">
-            <div class="sidebar">
+            <div class="sidebar" style="background-color: rgb(8, 8, 118);">
                 <div class="logo">
-                    <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+                    <a href="/">
+                        <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+                    </a>
+                    <a href="/" class="logo-title" style="color: white; text-decoration: none;">Plotter</a>
                 </div>
 
                 <ul class="nav flex-column">
                     <!-- Upload Data -->
-                    <li class="nav-item upload-section">
+                    <li class="nav-item-edit upload-section">
                         <form method="POST" enctype="multipart/form-data" class="mb-4" id="csvUploadForm">
                             {% csrf_token %}
                             <div class="form-group">
-                                <button type="button" id="csvFileButton" class="nav-link btn btn-primary mb-2">Select
-                                    CSV File</button>
+                                <button type="button" id="csvFileButton" class="nav-link btn btn-primary mb-2">
+                                    <img style="width: 25px; margin-bottom: 10px; margin-right: 8px;"
+                                        src="{% static 'myapp/images/upload.png' %}" alt="Select CSV"
+                                        style="width: 20px; height: 20px; margin-right: 5px;"> Select CSV File
+                                </button>
                                 <input type="file" name="csv_file" id="csvFileInput" class="form-control-file d-none">
                             </div>
-                            <button type="submit" class="nav-link btn btn-success mb-2" id="submitBtn" disabled>Upload
-                                Data</button>
+                            <button type="submit" class="nav-link btn btn-success mb-2" id="submitBtn" disabled>
+                                Upload Data
+                            </button>
                         </form>
 
                         <script>
@@ -96,7 +61,7 @@
                     </li>
 
                     <!-- Clean Data -->
-                    <li class="nav-item">
+                    <li class="nav-item-edit">
                         <form method="POST">
                             {% csrf_token %}
                             <a href="#" onclick="this.closest('form').submit()" class="nav-link">Clean Data</a>
@@ -105,97 +70,160 @@
                     </li>
 
                     <!-- Replace Data -->
-                    <li class="nav-item">
+                    <li class="nav-item-edit">
+                        <hr style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-bottom: 10px; display: none;"
+                            id="delete-column-hr">
                         <a href="#" id="replace-data-button" class="nav-link">Replace Data</a>
-                        <div id="replace-data-form" style="display: none;">
-                            <form method="POST" class="mt-3">
+                        <div id="replace-data-form" style="display: none; margin-top: 10px;">
+                            <form method="POST" class="mt-3" style="margin-left: 0px;">
                                 {% csrf_token %}
-                                <div class="form-group mb-3">
-                                    <label for="column" class="form-label">Column:</label>
-                                    <input type="text" name="column" id="column" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="column" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Column:</label>
+                                    <input type="text" name="column" id="column" class="form-control form-control-sm"
+                                        required style="width: 150px;">
+                                    <!-- ขยับ input -->
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label for="to_replace" class="form-label">Replace:</label>
-                                    <input type="text" name="to_replace" id="to_replace" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="to_replace" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Replace:</label>
+                                    <input type="text" name="to_replace" id="to_replace"
+                                        class="form-control form-control-sm" required style="width: 150px;">
+                                    <!-- ขยับ input -->
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label for="value" class="form-label">With:</label>
-                                    <input type="text" name="value" id="value" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="value" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">With:</label>
+                                    <input type="text" name="value" id="value" class="form-control form-control-sm"
+                                        required style="width: 150px;">
+                                    <!-- ขยับ input -->
                                 </div>
-                                <button type="submit" name="replace_data" value="true" class="btn btn-warning">Replace
-                                    Data</button>
+                                <div class="d-flex justify-content-center" style="margin-top: 10px;">
+                                    <!-- ปรับให้ปุ่มอยู่กลาง -->
+                                    <button type="submit" name="replace_data" value="true"
+                                        class="btn btn-warning btn-sm">Replace
+                                        Data</button>
+                                </div>
                             </form>
+                            <hr
+                                style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-top: 10px;">
                         </div>
                     </li>
 
                     <!-- Delete Column -->
-                    <li class="nav-item">
+                    <li class="nav-item-edit">
+                        <hr style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-bottom: 10px; display: none;"
+                            id="delete-column-hr">
                         <a href="#" id="delete-column-button" class="nav-link">Delete Column</a>
-                        <div id="delete-column-form" style="display: none;">
-                            <form method="POST">
+                        <div id="delete-column-form" style="display: none; margin-top: 10px;">
+                            <form method="POST" class="mt-3">
                                 {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="column_id">Column:</label>
-                                    <input type="text" name="column_id" id="column_id" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="column_id" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Column:</label>
+                                    <input type="text" name="column_id" id="column_id"
+                                        class="form-control form-control-sm" required style="width: 150px;">
                                 </div>
-                                <button type="submit" name="delete_column" value="true"
-                                    class="btn btn-warning">Submit</button>
+                                <div class="d-flex justify-content-center" style="margin-top: 10px;">
+                                    <button type="submit" name="delete_column" value="true"
+                                        class="btn btn-warning btn-sm">Submit</button>
+                                </div>
                             </form>
+                            <hr
+                                style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-top: 10px;">
                         </div>
                     </li>
 
                     <!-- Delete Row -->
-                    <li class="nav-item">
+                    <li class="nav-item-edit">
+                        <hr style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-bottom: 10px; display: none;"
+                            id="delete-row-hr">
                         <a href="#" id="delete-row-button" class="nav-link">Delete Row</a>
-                        <div id="delete-row-form" style="display: none;">
-                            <form method="POST">
+                        <div id="delete-row-form" style="display: none; margin-top: 10px;">
+                            <form method="POST" class="mt-3">
                                 {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="row_id">Row:</label>
-                                    <input type="text" name="row_id" id="row_id" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="row_id" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Row:</label>
+                                    <input type="text" name="row_id" id="row_id" class="form-control form-control-sm"
+                                        required style="width: 150px;">
                                 </div>
-                                <button type="submit" name="delete_row" value="true"
-                                    class="btn btn-warning">Submit</button>
+                                <div class="d-flex justify-content-center" style="margin-top: 10px;">
+                                    <button type="submit" name="delete_row" value="true"
+                                        class="btn btn-warning btn-sm">Submit</button>
+                                </div>
                             </form>
+                            <hr
+                                style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-top: 10px;">
                         </div>
                     </li>
 
+
+
                     <!-- Edit Value -->
-                    <li class="nav-item">
+                    <li class="nav-item-edit">
+                        <hr style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-bottom: 10px; display: none;"
+                            id="edit-value-hr">
                         <a href="#" id="edit-value-button" class="nav-link">Edit Value</a>
-                        <div id="edit-form" style="display: none;">
-                            <form method="POST">
+                        <div id="edit-form" style="display: none; margin-top: 10px;">
+                            <form method="POST" class="mt-3">
                                 {% csrf_token %}
-                                <div class="form-group">
-                                    <label for="row_id">Row ID:</label>
-                                    <input type="text" name="row_id" id="row_id" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="row_id" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Row
+                                        ID:</label>
+                                    <input type="text" name="row_id" id="row_id" class="form-control form-control-sm"
+                                        required style="width: 150px;">
                                 </div>
-                                <div class="form-group">
-                                    <label for="column">Column:</label>
-                                    <input type="text" name="column" id="column" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="column" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">Column:</label>
+                                    <input type="text" name="column" id="column" class="form-control form-control-sm"
+                                        required style="width: 150px;">
                                 </div>
-                                <div class="form-group">
-                                    <label for="new_value">New Value:</label>
-                                    <input type="text" name="new_value" id="new_value" class="form-control" required>
+                                <div class="form-group mb-3 d-flex align-items-center" style="margin-bottom: 10px;">
+                                    <label for="new_value" class="form-label"
+                                        style="margin-bottom: 0; margin-right: 10px; width: 60px; margin-left: 10px;">New
+                                        Value:</label>
+                                    <input type="text" name="new_value" id="new_value"
+                                        class="form-control form-control-sm" required style="width: 150px;">
                                 </div>
-                                <button type="submit" name="edit_value" value="true"
-                                    class="btn btn-warning">Submit</button>
+                                <div class="d-flex justify-content-center" style="margin-top: 10px;">
+                                    <button type="submit" name="edit_value" value="true"
+                                        class="btn btn-warning btn-sm">Submit</button>
+                                </div>
                             </form>
+                            <hr
+                                style="border: none; height: 1px; background-color: rgb(157, 172, 218); margin-top: 10px;">
                         </div>
                     </li>
+
+
+                    <!-- Log Out -->
+                    {% if user.is_authenticated %}
+                    <li class="nav-item-edit">
+                        <a href="/logout" class="nav-link" style=" color: white; margin-top: 130px; text-align: center;">
+                            <img style="width: 30px;;" src="{% static 'myapp/images/out.png' %}"
+                                style="width: 20px; height: 20px;"> Log Out
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
 
             <div class="main-content">
-
                 <!-- top bar (Export) & (Log Out) -->
                 <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
-                    <h1>{{ user.username }}</h1>
+                    <h1>
+                        <img src="{% static 'myapp/images/user.png' %}" alt="Percentage Icon"
+                            style="width: 30px; height: 30px; vertical-align: middle; margin-bottom: 8px;">
+                        : {{ user.username }}
+                    </h1>
+
                     <div>
                         {% if user.is_authenticated %}
-                        <button type="submit" name="export" class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</button>
+                        
                         <a href="/logout" class="btn" style="background-color: red; color: white;">
-                            <i class="bi bi-box-arrow-right"></i>
                             <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;"> Log
                             Out
                         </a>
@@ -203,8 +231,7 @@
                     </div>
                 </div>
 
-
-                <!--tabs-->
+                <!-- tabs -->
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/data/' %}active{% endif %}" href="{% url 'data' %}"
@@ -220,16 +247,15 @@
                     </li>
                 </ul>
 
-
-                <!--table-->
+                <!-- table -->
                 <div class="table-container">
                     <h2 class="mt-5">Data from CSV</h2>
-                    <table class="table table-striped" align="center">
+                    <table class="table table-striped" style="width: 98%; font-size: 16px; padding: 5px; margin: auto;height: 500px;">
                         <thead>
                             <tr>
                                 {% if columns %}
                                 {% for col in columns %}
-                                <th>{{ col }}</th>
+                                <th style="padding: 5px;">{{ col }}</th>
                                 {% endfor %}
                                 {% endif %}
                             </tr>
@@ -239,7 +265,7 @@
                             {% for row in page_obj %}
                             <tr>
                                 {% for cell in row %}
-                                <td>{{ cell }}</td>
+                                <td style="padding: 5px;">{{ cell }}</td>
                                 {% endfor %}
                             </tr>
                             {% endfor %}
@@ -253,7 +279,7 @@
                 
                     {% if page_obj.paginator.count > 0 %}
                     <nav>
-                        <ul class="pagination">
+                        <ul class="pagination justify-content-center" style="font-size: 14px;">
                             {% if page_obj.has_previous %}
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
@@ -281,10 +307,11 @@
                     </nav>
                     {% endif %}
                 </div>
-                
+
             </div>
 
-            
+
+
             <script>
                 document.getElementById('edit-value-button').addEventListener('click', function () {
                     var editForm = document.getElementById('edit-form');

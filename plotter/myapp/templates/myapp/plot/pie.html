@@ -11,9 +11,12 @@
 </head>
 <body>
     {% block content %}
-    <div class="sidebar">
+    <div class="sidebar" style="background-color: rgb(8, 8, 118);">
         <div class="logo">
-            <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+            <a href="/">
+                <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+            </a>
+            <a href="/" class="logo-title" style="color: white; text-decoration: none;">Plotter</a>
         </div>
         <h5>Select Options</h5>
         <form method="post" class="mb-4">
@@ -88,7 +91,11 @@
 
     <div class="main-content" style="overflow-y: auto; height: 100vh;">
         <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>{{ user.username }}</h1>
+            <h1>
+                <img src="{% static 'myapp/images/user.png' %}" alt="Percentage Icon"
+                    style="width: 30px; height: 30px; vertical-align: middle; margin-bottom: 8px;">
+                : {{ user.username }}
+            </h1>
             <div>
                 {% if user.is_authenticated %}
                 <form method="POST">
