@@ -18,5 +18,4 @@ urlpatterns = [
     path('pie', views.pie_viz, name='pie'),
     path('scatter', views.scatter_viz, name='scatter'),
     path('line', views.line_viz, name='line'),
-
 ]

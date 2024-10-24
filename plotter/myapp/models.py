@@ -8,3 +8,12 @@ class CSVFile(models.Model):
 
     def __str__(self):
         return self.file.name
+    
+class SavedPlot(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    plot_type = models.CharField(max_length=50)
+    plot_data = models.JSONField()
+
+    def __str__(self):
+        return self.title

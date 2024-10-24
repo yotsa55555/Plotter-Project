@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.models import User
-from .models import CSVFile
+from .models import CSVFile, SavedPlot
 
 import pandas as pd
 import numpy as np
@@ -159,6 +159,31 @@ class PlotViz:
         except (ValueError, TypeError):
             self.title_font_size = 24
 
+    def save_plot(self, title, plot_type):
+        try:
+            if self.fig is None:
+                return False, "No plot to save. Please create a plot first."
+
+            if self.fig is None and self.request.session.get('plot_data'):
+                try:
+                    self.fig = pio.from_json(self.request.session['plot_data'])
+                except Exception:
+                    return False, "Could not restore plot data. Please create the plot again."
+
+            plot_data = pio.to_json(self.fig)
+
+            plot = SavedPlot(
+                user=self.request.user,
+                title=title,
+                plot_type=plot_type,
+                plot_data=plot_data,
+            )
+            
+            plot.save()
+            return True, "Plot saved successfully."
+            
+        except Exception as e:
+            return False, f"Error saving plot: {str(e)}"
 
     def create_plot(self):
         raise NotImplementedError("Subclasses should implement this method")
@@ -166,6 +191,17 @@ class PlotViz:
 
 class BarViz(PlotViz):
     template_name = "myapp/plot/bar.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "bar_plot" in self.request.POST and not self.data.empty:
@@ -187,7 +223,7 @@ class BarViz(PlotViz):
             x_axis_label = self.x_axis_label or self.x_column
             y_axis_label = self.y_axis_label or self.y_column
 
-            fig = px.bar(
+            self.fig = px.bar(
                 self.data,
                 x=self.x_column,
                 y=self.y_column,
@@ -197,13 +233,13 @@ class BarViz(PlotViz):
             )
 
             if self.plot_color:
-                fig.update_traces(marker_color=self.plot_color)
+                self.fig.update_traces(marker_color=self.plot_color)
 
-            fig.update_traces(
+            self.fig.update_traces(
                 marker_color=self.plot_color, opacity=self.opacity, width=self.bar_width
             )
 
-            fig.update_layout(
+            self.fig.update_layout(
                 xaxis_title=x_axis_label,
                 yaxis_title=y_axis_label,
                 xaxis_showgrid=self.show_grid,
@@ -212,9 +248,10 @@ class BarViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
 
-            fig.update_layout(barmode=self.bar_mode)
+            self.fig.update_layout(barmode=self.bar_mode)
 
-            self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -226,11 +263,28 @@ class BarViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('bar') if isinstance(plot_div_dict, dict) else None
 
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
+
         return self.render_plot()
 
 
 class BoxViz(PlotViz):
     template_name = "myapp/plot/box.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "box_plot" in self.request.POST and not self.data.empty:
@@ -246,7 +300,7 @@ class BoxViz(PlotViz):
             x_axis_label = self.x_axis_label or self.x_column
             y_axis_label = self.y_axis_label or self.y_column
 
-            fig = px.box(
+            self.fig = px.box(
                 self.data,
                 x=self.x_column,
                 y=self.y_column,
@@ -256,9 +310,9 @@ class BoxViz(PlotViz):
             )
 
             if self.plot_color:
-                fig.update_traces(marker_color=self.plot_color)
+                self.fig.update_traces(marker_color=self.plot_color)
 
-            fig.update_layout(
+            self.fig.update_layout(
                 xaxis_showgrid=self.show_grid,
                 yaxis_showgrid=self.show_grid,
                 showlegend=self.show_legend,
@@ -267,7 +321,8 @@ class BoxViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
 
-            self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -279,11 +334,28 @@ class BoxViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('box') if isinstance(plot_div_dict, dict) else None
 
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
+
         return self.render_plot()
 
 
 class HistogramViz(PlotViz):
     template_name = "myapp/plot/histogram.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "histogram_plot" in self.request.POST and not self.data.empty:
@@ -310,7 +382,7 @@ class HistogramViz(PlotViz):
             y_axis_label = self.y_axis_label or self.y_column
 
             if num_bins is not None:
-                fig = px.histogram(
+                self.fig = px.histogram(
                     self.data,
                     x=self.x_column,
                     nbins=num_bins,
@@ -319,7 +391,7 @@ class HistogramViz(PlotViz):
                 )
             elif bin_width is not None:
 
-                fig = px.histogram(
+                self.fig = px.histogram(
                     self.data,
                     x=self.x_column,
                     nbins=int(10 / bin_width),
@@ -327,7 +399,7 @@ class HistogramViz(PlotViz):
                     template=self.plot_style,
                 )
             else:
-                fig = px.histogram(
+                self.fig = px.histogram(
                     self.data,
                     x=self.x_column,
                     title=self.plot_title,
@@ -335,9 +407,9 @@ class HistogramViz(PlotViz):
                 )
 
             if self.plot_color:
-                fig.update_traces(marker_color=self.plot_color)
+                self.fig.update_traces(marker_color=self.plot_color)
 
-            fig.update_layout(
+            self.fig.update_layout(
                 xaxis_showgrid=self.show_grid,
                 yaxis_showgrid=self.show_grid,
                 showlegend=self.show_legend,
@@ -345,8 +417,9 @@ class HistogramViz(PlotViz):
                 yaxis_title=y_axis_label,
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
-
-            self.plot_div = pio.to_html(fig, full_html=False)
+            
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -358,11 +431,28 @@ class HistogramViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('histogram') if isinstance(plot_div_dict, dict) else None
 
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
+
         return self.render_plot()
 
 
 class LineViz(PlotViz):
     template_name = "myapp/plot/line.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "line_plot" in self.request.POST and not self.data.empty:
@@ -380,7 +470,7 @@ class LineViz(PlotViz):
 
             self.title_font_fix()
 
-            fig = px.line(
+            self.fig = px.line(
                 self.data,
                 x=self.x_column,
                 y=self.y_column,
@@ -389,11 +479,11 @@ class LineViz(PlotViz):
             )
 
             if self.plot_color:
-                fig.update_traces(
+                self.fig.update_traces(
                     line=dict(color=self.plot_color, width=self.line_width)
                 )
             
-            fig.update_layout(
+            self.fig.update_layout(
                 xaxis_showgrid=self.show_grid,
                 yaxis_showgrid=self.show_grid,
                 showlegend=self.show_legend,
@@ -404,19 +494,20 @@ class LineViz(PlotViz):
             )
 
             if self.legend_position == "bottom":
-                fig.update_layout(
+                self.fig.update_layout(
                     legend=dict(yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
                 )
             elif self.legend_position == "left":
-                fig.update_layout(
+                self.fig.update_layout(
                     legend=dict(yanchor="middle", y=0.5, xanchor="left", x=-0.1)
                 )
             elif self.legend_position == "right":
-                fig.update_layout(
+                self.fig.update_layout(
                     legend=dict(yanchor="middle", y=0.5, xanchor="right", x=1.1)
                 )
 
-            self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -428,10 +519,28 @@ class LineViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('line') if isinstance(plot_div_dict, dict) else None
 
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
+
         return self.render_plot()
+
 
 class PieViz(PlotViz):
     template_name = "myapp/plot/pie.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "pie_plot" in self.request.POST and not self.data.empty:
@@ -446,7 +555,7 @@ class PieViz(PlotViz):
 
             self.title_font_fix()
 
-            fig = px.pie(
+            self.fig = px.pie(
                 self.data,
                 names=self.x_column,
                 values=self.y_column, 
@@ -455,17 +564,18 @@ class PieViz(PlotViz):
             )
 
             if self.hole_size > 0:
-                fig.update_traces(hole=self.hole_size)
+                self.fig.update_traces(hole=self.hole_size)
 
-            fig.update_traces(textposition=self.label_position) 
-            fig.update_layout(
+            self.fig.update_traces(textposition=self.label_position) 
+            self.fig.update_layout(
                 xaxis_showgrid=self.show_grid,
                 yaxis_showgrid=self.show_grid,
                 showlegend=self.show_legend,
                 title=dict(text=self.plot_title, font_size=self.title_font_size)
             )
 
-            self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -477,12 +587,28 @@ class PieViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('pie') if isinstance(plot_div_dict, dict) else None
 
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
+
         return self.render_plot()
-
-
+    
 
 class ScatterViz(PlotViz):
     template_name = "myapp/plot/scatter.html"
+
+    def __init__(self, request):
+        super().__init__(request)
+        # Initialize fig from session if it exists
+        self.fig = None
+        plot_data = self.request.session.get('plot_data')
+        if plot_data:
+            try:
+                self.fig = pio.from_json(plot_data)
+            except Exception:
+                pass
 
     def create_plot(self):
         if "scatter_plot" in self.request.POST and not self.data.empty:
@@ -505,7 +631,7 @@ class ScatterViz(PlotViz):
             y_axis_label = self.y_axis_label or self.y_column
 
 
-            fig = px.scatter(
+            self.fig = px.scatter(
                 self.data,
                 x=self.x_column,
                 y=self.y_column,
@@ -514,11 +640,11 @@ class ScatterViz(PlotViz):
             )
 
             if self.marker_type:
-                fig.update_traces(marker=dict(symbol=self.marker_type))
+                self.fig.update_traces(marker=dict(symbol=self.marker_type))
 
-            fig.update_traces(marker=dict(size=self.marker_size, color=self.plot_color))
+            self.fig.update_traces(marker=dict(size=self.marker_size, color=self.plot_color))
 
-            fig.update_layout(
+            self.fig.update_layout(
                 xaxis_title=x_axis_label,
                 yaxis_title=y_axis_label,
                 xaxis_showgrid=self.show_grid,
@@ -527,7 +653,8 @@ class ScatterViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
 
-            self.plot_div = pio.to_html(fig, full_html=False)
+            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
             if not isinstance(plot_div_dict, dict):
@@ -539,67 +666,152 @@ class ScatterViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('scatter') if isinstance(plot_div_dict, dict) else None
 
-        return self.render_plot()
+        if self.fig is None and self.request.session.get('plot_data'):
+            try:
+                self.fig = pio.from_json(self.request.session['plot_data'])
+            except Exception:
+                pass
 
+        return self.render_plot()
+    
     
 def bar_viz(request):
     viz = BarViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Bar Plot")
+        success, message = viz.save_plot(title, "Bar")
+        if success:
+            messages.success(request, message)
+            return redirect('/bar')
+        else:
+            messages.error(request, message)
+    
+    return viz.render_plot()
 
 
 def box_viz(request):
     viz = BoxViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
-
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Box Plot")
+        success, message = viz.save_plot(title, "Box")
+        if success:
+            messages.success(request, message)
+            return redirect('/box')
+        else:
+            messages.error(request, message)
+    
+    return viz.render_plot()
 
 def histogram_viz(request):
     viz = HistogramViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Histogram Plot")
+        success, message = viz.save_plot(title, "Histogram")
+        if success:
+            messages.success(request, message)
+            return redirect('/histogram')
+        else:
+            messages.error(request, message)
+    
+    return viz.render_plot()
 
 
 def line_viz(request):
     viz = LineViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Line Plot")
+        success, message = viz.save_plot(title, "Line")
+        if success:
+            messages.success(request, message)
+            return redirect('/line')
+        else:
+            messages.error(request, message)
+    
+    return viz.render_plot()
 
 
 def pie_viz(request):
     viz = PieViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+    
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Pie Plot")
+        success, message = viz.save_plot(title, "Pie")
+        if success:
+            messages.success(request, message)
+            return redirect('/pie')
+        else:
+            messages.error(request, message)
+    
+    return viz.render_plot()
 
 
 def scatter_viz(request):
     viz = ScatterViz(request)
-    if not viz.data.empty:
-        viz.create_plot()
-        return viz.render_plot()
-    else:
+    
+    if viz.data.empty:
         messages.error(request, "Data is empty")
         return redirect('data')
+    
+    # Create plot
+    plot_created = viz.create_plot()
+    
+    # Handle save request
+    if 'save' in request.POST and plot_created:
+        title = request.POST.get('plot_title', "Scatter Plot")
+        success, message = viz.save_plot(title, "Scatter")
+        if success:
+            messages.success(request, message)
+            return redirect('/scatter')
+        else:
+            messages.error(request, message)
+    else:
+        pass
+    
+    return viz.render_plot()
 
 
 class DataHandler:
@@ -930,11 +1142,3 @@ class DescribeData(DataHandler):
 def describe_data(request):
     handler = DescribeData(request)
     return handler.process_request()
-
-
-def delete_row(data):
-    pass
-
-
-def edit_value(data):
-    pass
