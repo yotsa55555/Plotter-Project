@@ -193,7 +193,7 @@
                     <h1>{{ user.username }}</h1>
                     <div>
                         {% if user.is_authenticated %}
-                        <button type="submit" name="export" class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</button>
+                        <a href="/export"  class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
                         <a href="/logout" class="btn" style="background-color: red; color: white;">
                             <i class="bi bi-box-arrow-right"></i>
                             <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;"> Log
@@ -324,6 +324,7 @@
 
             </script>
             {% endblock %}
+
 
 </body>
 

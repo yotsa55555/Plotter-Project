@@ -7,6 +7,8 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .models import CSVFile, SavedPlot
+from django.core.serializers.json import DjangoJSONEncoder
+import json
 
 import pandas as pd
 import numpy as np
@@ -159,18 +161,13 @@ class PlotViz:
         except (ValueError, TypeError):
             self.title_font_size = 24
 
-    def save_plot(self, title, plot_type):
+    def save_plot(self, title, plot_type, fig):
         try:
-            if self.fig is None:
+            print(fig)
+            if fig is None:
                 return False, "No plot to save. Please create a plot first."
 
-            if self.fig is None and self.request.session.get('plot_data'):
-                try:
-                    self.fig = pio.from_json(self.request.session['plot_data'])
-                except Exception:
-                    return False, "Could not restore plot data. Please create the plot again."
-
-            plot_data = pio.to_json(self.fig)
+            plot_data = pio.to_json(fig)
 
             plot = SavedPlot(
                 user=self.request.user,
@@ -196,7 +193,7 @@ class BarViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_bar')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -250,7 +247,7 @@ class BarViz(PlotViz):
 
             self.fig.update_layout(barmode=self.bar_mode)
 
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_bar'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -263,9 +260,9 @@ class BarViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('bar') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_bar'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_bar'])
             except Exception:
                 pass
 
@@ -279,7 +276,7 @@ class BoxViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_box')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -321,7 +318,7 @@ class BoxViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
 
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_box'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -334,9 +331,9 @@ class BoxViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('box') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_box'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_box'])
             except Exception:
                 pass
 
@@ -350,7 +347,7 @@ class HistogramViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_histogram')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -418,7 +415,7 @@ class HistogramViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
             
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_histogram'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -431,9 +428,9 @@ class HistogramViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('histogram') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_histogram'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_histogram'])
             except Exception:
                 pass
 
@@ -447,7 +444,7 @@ class LineViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_line')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -506,7 +503,7 @@ class LineViz(PlotViz):
                     legend=dict(yanchor="middle", y=0.5, xanchor="right", x=1.1)
                 )
 
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_line'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -519,9 +516,9 @@ class LineViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('line') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_line'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_line'])
             except Exception:
                 pass
 
@@ -535,7 +532,7 @@ class PieViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_pie')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -574,7 +571,7 @@ class PieViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size)
             )
 
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_pie'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -587,9 +584,9 @@ class PieViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('pie') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_pie'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_pie'])
             except Exception:
                 pass
 
@@ -603,7 +600,7 @@ class ScatterViz(PlotViz):
         super().__init__(request)
         # Initialize fig from session if it exists
         self.fig = None
-        plot_data = self.request.session.get('plot_data')
+        plot_data = self.request.session.get('plot_scatter')
         if plot_data:
             try:
                 self.fig = pio.from_json(plot_data)
@@ -653,7 +650,7 @@ class ScatterViz(PlotViz):
                 title=dict(text=self.plot_title, font_size=self.title_font_size),
             )
 
-            self.request.session['plot_data'] = pio.to_json(self.fig)
+            self.request.session['plot_scatter'] = pio.to_json(self.fig)
             self.plot_div = pio.to_html(self.fig, full_html=False)
 
             plot_div_dict = self.request.session.get('plot_div', {})
@@ -666,9 +663,9 @@ class ScatterViz(PlotViz):
         plot_div_dict = self.request.session.get('plot_div', {})
         self.plot_div = plot_div_dict.get('scatter') if isinstance(plot_div_dict, dict) else None
 
-        if self.fig is None and self.request.session.get('plot_data'):
+        if self.fig is None and self.request.session.get('plot_scatter'):
             try:
-                self.fig = pio.from_json(self.request.session['plot_data'])
+                self.fig = pio.from_json(self.request.session['plot_scatter'])
             except Exception:
                 pass
 
@@ -684,11 +681,15 @@ def bar_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_bar'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Bar Plot")
-        success, message = viz.save_plot(title, "Bar")
+        success, message = viz.save_plot(title, "Bar", fig)
         if success:
             messages.success(request, message)
             return redirect('/bar')
@@ -707,11 +708,15 @@ def box_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_box'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Box Plot")
-        success, message = viz.save_plot(title, "Box")
+        success, message = viz.save_plot(title, "Box", fig)
         if success:
             messages.success(request, message)
             return redirect('/box')
@@ -729,11 +734,15 @@ def histogram_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_histogram'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Histogram Plot")
-        success, message = viz.save_plot(title, "Histogram")
+        success, message = viz.save_plot(title, "Histogram", fig)
         if success:
             messages.success(request, message)
             return redirect('/histogram')
@@ -752,11 +761,15 @@ def line_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_line'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Line Plot")
-        success, message = viz.save_plot(title, "Line")
+        success, message = viz.save_plot(title, "Line", fig)
         if success:
             messages.success(request, message)
             return redirect('/line')
@@ -775,11 +788,15 @@ def pie_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_pie'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Pie Plot")
-        success, message = viz.save_plot(title, "Pie")
+        success, message = viz.save_plot(title, "Pie", fig)
         if success:
             messages.success(request, message)
             return redirect('/pie')
@@ -798,11 +815,15 @@ def scatter_viz(request):
     
     # Create plot
     plot_created = viz.create_plot()
+    try:
+        fig = pio.from_json(viz.request.session['plot_scatter'])
+    except:
+        fig = None
     
     # Handle save request
     if 'save' in request.POST and plot_created:
         title = request.POST.get('plot_title', "Scatter Plot")
-        success, message = viz.save_plot(title, "Scatter")
+        success, message = viz.save_plot(title, "Scatter", fig)
         if success:
             messages.success(request, message)
             return redirect('/scatter')
@@ -1142,3 +1163,21 @@ class DescribeData(DataHandler):
 def describe_data(request):
     handler = DescribeData(request)
     return handler.process_request()
+
+@login_required
+def export_plots(request):
+    saved_plots = SavedPlot.objects.filter(user=request.user)
+    
+    # Serialize plots data
+    plots_data = []
+    for plot in saved_plots:
+        plots_data.append({
+            'id': plot.id,
+            'title': plot.title,
+            'plot_data': plot.plot_data  # Assuming this is already JSON-serializable
+        })
+    context = {
+        'saved_plots': saved_plots,  # For template iteration
+        'saved_plots_json': json.dumps(plots_data, cls=DjangoJSONEncoder)  # For JavaScript
+    }
+    return render(request, 'myapp/export.html', context)

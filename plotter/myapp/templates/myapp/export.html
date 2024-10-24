@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Plots</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .plot-card {
+            transition: transform 0.2s;
+        }
+
+        .plot-card:hover {
+            transform: scale(1.02);
+        }
+
+        .plot-container {
+            height: 400px;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .card {
+            height: 100%;
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plot-title {
+            margin-bottom: 10px;
+        }
+
+        .export-button-container {
+            margin-top: auto;
+            padding: 10px 0;
+        }
+
+        .page-header {
+            padding: 20px 0;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+            .plot-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>Export Plots</h1>
+                <div>
+                    <button type="button" class="btn btn-secondary me-2" onclick="window.history.back();">Back</button>
+                    <button type="button" class="btn btn-primary" id="exportAll">Export All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <div class="container">
+        <div class="row g-3" id="plotsContainer">
+            {% for plot in saved_plots %}
+            <div class="col-xl-4 col-lg-6 col-md-6 col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title plot-title">{{ plot.title }}</h5>
+                        <div id="plot-{{ plot.id }}" class="plot-container"></div>
+                        <div class="export-button-container">
+                            <button class="btn btn-sm btn-outline-primary export-single w-100"
+                                data-plot-id="{{ plot.id }}">
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script id="plots-data" type="application/json">
+        {{ saved_plots_json|safe }}
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let savedPlots;
+            try {
+                const plotsDataElement = document.getElementById('plots-data');
+                if (!plotsDataElement) {
+                    console.error('Could not find plots-data element');
+                    return;
+                }
+                savedPlots = JSON.parse(plotsDataElement.textContent);
+                if (!savedPlots) {
+                    console.error('No plots data available');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error parsing plots data:', error);
+                return;
+            }
+
+            // Function to render plots
+            function renderPlots() {
+                const defaultLayout = {
+                    autosize: true,
+                    margin: { l: 50, r: 30, t: 30, b: 50 },
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        yanchor: 'bottom',
+                        y: -0.3,
+                        xanchor: 'center',
+                        x: 0.5
+                    }
+                };
+
+                const defaultConfig = {
+                    responsive: true,
+                    displayModeBar: true,
+                    displaylogo: false,
+                    modeBarButtonsToRemove: ['lasso2d', 'select2d']
+                };
+
+                savedPlots.forEach(plot => {
+                    try {
+                        const plotData = JSON.parse(plot.plot_data);
+                        const plotContainer = document.getElementById(`plot-${plot.id}`);
+
+                        if (!plotContainer) {
+                            console.error(`Container for plot ${plot.id} not found`);
+                            return;
+                        }
+
+                        const layout = {
+                            ...defaultLayout,
+                            ...(plotData.layout || {})
+                        };
+
+                        Plotly.newPlot(
+                            plotContainer,
+                            plotData.data,
+                            layout,
+                            defaultConfig
+                        ).catch(error => {
+                            console.error(`Error rendering plot ${plot.id}:`, error);
+                            plotContainer.innerHTML = `<div class="error-message">Error rendering plot: ${error.message}</div>`;
+                        });
+                    } catch (error) {
+                        console.error(`Error processing plot ${plot.id}:`, error);
+                    }
+                });
+            }
+
+            // Function to export a single plot
+            function exportPlot(plotId) {
+                const plotElement = document.getElementById(`plot-${plotId}`);
+                if (!plotElement) {
+                    console.error(`Plot element ${plotId} not found`);
+                    return;
+                }
+                Plotly.downloadImage(plotElement, {
+                    format: 'png',
+                    filename: `plot-${plotId}`,
+                    height: 800,
+                    width: 1200,
+                    scale: 2
+                });
+            }
+
+            // Function to export all plots
+            async function exportAllPlots() {
+                const plots = document.querySelectorAll('[id^="plot-"]');
+                for (let plot of plots) {
+                    const plotId = plot.id.replace('plot-', '');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    exportPlot(plotId);
+                }
+            }
+
+            // Event listeners
+            document.querySelectorAll('.export-single').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const plotId = e.target.dataset.plotId;
+                    exportPlot(plotId);
+                });
+            });
+
+            document.getElementById('exportAll').addEventListener('click', exportAllPlots);
+
+            // Initial render
+            renderPlots();
+
+            // Re-render plots on window resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    const plots = document.querySelectorAll('[id^="plot-"]');
+                    plots.forEach(plot => {
+                        Plotly.relayout(plot, {
+                            autosize: true
+                        });
+                    });
+                }, 250);
+            });
+        });
+    </script>
+</body>
+</html>
