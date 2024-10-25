@@ -97,13 +97,17 @@ class PlotViz:
         self.columns = []
         self.data = self.get_user_data()
         self.load_from_session()
-
+ 
     def get_user_data(self):
         user = self.request.user
         if user.is_authenticated:
             try:
                 csv_file = CSVFile.objects.filter(user=user).latest('uploaded_at') 
                 data = pd.read_csv(csv_file.file.path)
+                if 'Index' not in data.columns:
+                    data['Index'] = data.index
+                    cols = ['Index'] + [col for col in data.columns if col != 'Index']
+                    data = data[cols]
                 self.columns = list(data.columns)
                 return data
             except CSVFile.DoesNotExist:
@@ -177,7 +181,8 @@ class PlotViz:
                 plot_data=plot_data,
             )
 
-            plot.created_at = timezone.now()
+            plot.uploaded_at = timezone.now()
+            print(plot.uploaded_at)
             plot.save()
             return True, "Plot saved successfully."
             
@@ -1179,6 +1184,7 @@ def export_plots(request):
             'plot_data': plot.plot_data,  # Assuming this is already JSON-serializable
             'uploaded_at': plot.uploaded_at,
         })
+        print(plot.uploaded_at)
     context = {
         'saved_plots': saved_plots,  # For template iteration
         'saved_plots_json': json.dumps(plots_data, cls=DjangoJSONEncoder)  # For JavaScript
