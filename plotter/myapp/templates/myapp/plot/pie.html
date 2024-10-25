@@ -100,7 +100,7 @@
                 {% if user.is_authenticated %}
                 <form method="POST">
                     {% csrf_token %}
-                    
+                    <button type="submit" name="save" class="btn" style="background-color: rgb(51, 145, 83); color: white;">Save</button>
                     <a href="/export"  class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
                     <a href="/logout" class="btn" style="background-color: red; color: white;">
                         <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;" alt="Logout">
@@ -128,7 +128,7 @@
             <div class="plot-container mt-4">
                 {% if plot_div %}
                     {{ plot_div|safe }}
-                    <button type="submit" name="save" class="btn" style="background-color: rgb(51, 145, 83); color: white; margin-left: 90%;">Save</button>
+                    
                 {% else %}
                     <p>No plot available.</p>
                 {% endif %}
