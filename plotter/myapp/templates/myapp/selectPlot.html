@@ -9,20 +9,60 @@
     <title>Plot Data</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.0/dist/handsontable.min.css">
-    <link rel="stylesheet" href="{% static 'myapp/selectplot.css' %}">
+    <link rel="stylesheet" href="{% static 'myapp/selectplots.css' %}">
+    <style>
+        .card {
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-img-top {
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .card-body {
+            text-align: center;
+        }
+
+        .card-title {
+            font-weight: bold;
+        }
+
+        .card-text {
+            color: #6c757d;
+        }
+    </style>
 </head>
 
 <body>
     {% block content %}
     <div class="sidebar">
         <div class="logo">
-            <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+            <a href="/">
+                <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+            </a>
+            <a href="/" class="logo-title" style="color: white; text-decoration: none;">Plotter</a>
         </div>
     </div>
 
     <div class="main-content">
         <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>{{ user.username }} Data</h1>
+            
+            <div style="display: flex; align-items: center;">
+                <h1>
+                    <img src="{% static 'myapp/images/user.png' %}" alt="Percentage Icon"
+                        style="width: 30px; height: 30px; vertical-align: middle; margin-bottom: 8px;">
+                     {{ user.username }}
+                </h1>
+            </div>
             <div>
                 {% if user.is_authenticated %}
                 <a href="/export"  class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
@@ -46,48 +86,100 @@
                 <a class="nav-link active" href="{% url 'selectPlot' %}" role="tab">Preview</a>
             </li>
         </ul>
-
         <div class="table-container">
             <form method="post" class="mb-4">
                 {% csrf_token %}
-                <div class="row text-center">
-                    <div class="col-md-4">
-                        <a href="/scatter">
-                            <img src="{% static 'myapp/images/scatter.png' %}" alt="Scatter Plot" class="img-fluid">
-                        </a>
-                        <p>Scatter Plot</p>
+                <div class="container mt-5">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/scatter">
+                                    <img src="{% static 'myapp/images/scatter.png' %}" class="card-img-top"
+                                        alt="Scatter Plot">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">Scatter Plot</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/histogram">
+                                    <img src="{% static 'myapp/images/histogram.png' %}" class="card-img-top"
+                                        alt="Histogram">
+                                </a>
+                                <div class="card-body">
+                                    <br>
+                                    <h5 class="card-title">Histogram</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/bar">
+                                    <img src="{% static 'myapp/images/bar.png' %}" class="card-img-top" alt="Bar Plot">
+                                </a>
+                                <div class="card-body">
+                                    <br>
+                                    <br>
+                                    <h5 class="card-title">Bar Plot</h5>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <a href="/histogram">
-                            <img src="{% static 'myapp/images/histogram.png' %}" alt="Histogram" class="img-fluid">
-                        </a>
-                        <p>Histogram</p>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="/bar">
-                            <img src="{% static 'myapp/images/bar.png' %}" alt="Bar Plot" class="img-fluid">
-                        </a>
-                        <p>Bar Plot</p>
-                    </div>
-                </div>
-                <div class="row text-center mt-4">
-                    <div class="col-md-4">
-                        <a href="/line">
-                            <img src="{% static 'myapp/images/line.png' %}" alt="Line Plot" class="img-fluid">
-                        </a>
-                        <p>Line Plot</p>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="/box">
-                            <img src="{% static 'myapp/images/box.png' %}" alt="Box Plot" class="img-fluid">
-                        </a>
-                        <p>Box Plot</p>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="/pie">
-                            <img src="{% static 'myapp/images/pie.png' %}" alt="Pie Chart" class="img-fluid">
-                        </a>
-                        <p>Pie Chart</p>
+
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/line">
+                                    <img src="{% static 'myapp/images/line.png' %}" class="card-img-top"
+                                        alt="Line Plot">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">Line Plot</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/box">
+                                    <img src="{% static 'myapp/images/box.png' %}" class="card-img-top" alt="Box Plot">
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">Box Plot</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card"
+                                style="border: none; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease, box-shadow 0.3s ease;"
+                                onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.2)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0, 0, 0, 0.1)';">
+                                <a href="/pie">
+                                    <img src="{% static 'myapp/images/pie.png' %}" class="card-img-top" alt="Pie Chart">
+                                </a>
+                                <div class="card-body">
+                                    <br>
+                                    <h5 class="card-title">Pie Chart</h5>
+                                    <p></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>

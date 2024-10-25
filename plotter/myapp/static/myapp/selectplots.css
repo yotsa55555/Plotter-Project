@@ -1,0 +1,94 @@
+.main-content {
+    padding: 20px;
+    overflow: hidden;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 0;
+}
+
+.nav-tabs {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+}
+
+.plot-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.plot-option {
+    flex: 0 0 calc(33.333% - 20px);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.plot-option:hover {
+    transform: translateY(-5px);
+}
+
+.plot-option a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.plot-option a:hover {
+    color: #000;
+}
+
+.plot-option img {
+    width: 100%;
+    max-width: 150px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    transition: opacity 0.3s ease;
+}
+
+.plot-option a:hover img {
+    opacity: 0.8;
+}
+
+.plot-option span {
+    font-size: 14px;
+    font-weight: bold;
+}
+.card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-img-top {
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.card-body {
+    text-align: center;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.card-text {
+    color: #6c757d;
+}
+
+

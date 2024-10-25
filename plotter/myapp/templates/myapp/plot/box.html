@@ -13,7 +13,10 @@
     {% block content %}
     <div class="sidebar">
         <div class="logo">
-            <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image"> Plotter
+            <a href="/">
+                <img style="width: 20px;" src="{% static 'myapp/images/logo.png' %}" alt="Logo Image">
+            </a>
+            <a href="/" class="logo-title" style="color: white; text-decoration: none;">Plotter</a>
         </div>
         <h5>Select Options</h5>
         <form method="post" class="mb-4">
@@ -102,12 +105,16 @@
 
     <div class="main-content" style="overflow-y: auto; height: 100vh;">
         <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>{{ user.username }}</h1>
+            <h1>
+                <img src="{% static 'myapp/images/user.png' %}" alt="Percentage Icon"
+                    style="width: 30px; height: 30px; vertical-align: middle; margin-bottom: 8px;">
+                 {{ user.username }}
+            </h1>
             <div>
                 {% if user.is_authenticated %}
                 <form method="POST">
                     {% csrf_token %}
-                    <button type="submit" name="save" class="btn" style="background-color: rgb(0, 231, 77); color: white;">Save</button>
+                    
                     <a href="/export"  class="btn" style="background-color: rgb(42, 38, 174); color: white;">Export</a>
                     <a href="/logout" class="btn" style="background-color: red; color: white;">
                         <img src="{% static 'myapp/images/logout.png' %}" style="width: 20px; height: 20px;" alt="Logout">
@@ -135,6 +142,7 @@
             <div class="plot-container mt-4">
                 {% if plot_div %}
                     {{ plot_div|safe }}
+                    <button type="submit" name="save" class="btn" style="background-color: rgb(51, 145, 83); color: white; margin-left: 90%;">Save</button>
                 {% else %}
                     <p>No plot available.</p>
                 {% endif %}
